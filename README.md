@@ -24,6 +24,7 @@ A phone web app that uses the microphone to measure a guitar and tell you what t
 ## Method
 
 - **Pitch**: McLeod normalised square-difference function on ~85 ms of raw audio (echo cancellation, noise suppression and auto-gain off), parabolic interpolation, then refinement to the fundamental with two band-pass filters centred on the first estimate. The refinement removes a ~4-cent sharp bias that stretched overtones cause right after the pluck.
+- **Display**: the needle uses a square-root scale so the last few cents take most of the dial, plus a linear ±10-cent fine bar; it updates every frame from a 120 ms median with light smoothing, and settles within about 0.2 s after a 0.5–2 cent change (measured with a synthetic tone).
 - **Inharmonicity**: overtone peaks in a 32,768-point spectrum (~1.5 Hz bins) with peak interpolation; B from a least-squares fit of (f<sub>n</sub>/(n·f<sub>1</sub>))² − 1 = B(n² − 1).
 - **Saddle move**: moving the saddle back by Δ lowers the fretted 12th-fret note relative to the harmonic by Δ/L, so Δ = L(k − 1)/(2 − k), k = 2<sup>error/1200</sup>. That is ≈0.37 mm per cent on a 648 mm scale.
 - **Tension**: T = 4μL²f², μ from D'Addario's published unit weights (EXL110 10–46, EXL120 9–42) or values entered from any maker's chart.

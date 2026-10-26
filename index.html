@@ -101,6 +101,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--navy)}
       <div class="note" id="noteName">–</div>
       <div class="freq" id="freqTxt">— Hz</div>
       <svg class="gfx" id="gauge" viewBox="0 0 320 150" aria-label="Tuning gauge"></svg>
+      <svg class="gfx" id="fine" viewBox="0 0 320 48" aria-label="Fine tuning bar, plus or minus 10 cents" style="max-width:420px;margin:2px auto 0"></svg>
       <div class="action" id="tuneAction">&nbsp;</div>
       <div class="status" id="tuneStatus">Start the microphone, then pluck a string.</div>
     </div>
@@ -385,10 +386,10 @@ function loop(){
   const lvl=rmsDb(seg); $('lvl').style.width=Math.max(0,Math.min(100,(lvl+70)*1.6))+'%';
   trackDecay(lvl);
   let r=null;
-  if(lvl>-58){ r=detectPitch(seg,sr,60,1400);
-    if(r&&r.clarity>0.86){ const fr=fundamentalPitch(timeBuf.subarray(timeBuf.length-3*PITCH_N),sr,r.f,PITCH_N); if(fr) r.f=fr; } }
+  if(lvl>-66){ r=detectPitch(seg,sr,60,1400);
+    if(r&&r.clarity>0.8){ const fr=fundamentalPitch(timeBuf.subarray(timeBuf.length-3*PITCH_N),sr,r.f,PITCH_N); if(fr) r.f=fr; } }
   const now=performance.now();
-  if(r&&r.clarity>0.86){ st.last={f:r.f,cl:r.clarity,t:now}; st.readings.push({f:r.f,t:now}); }
+  if(r&&r.clarity>0.8){ st.last={f:r.f,cl:r.clarity,t:now}; st.readings.push({f:r.f,t:now}); }
   else st.readings.push({f:null,t:now});
   while(st.readings.length&&now-st.readings[0].t>1500) st.readings.shift();
   if(frame%3===0) analyser.getFloatFrequencyData(specBuf);
@@ -396,7 +397,7 @@ function loop(){
   frame++; requestAnimationFrame(loop);
 }
 // smoothed current frequency: median of valid readings in the last 250 ms
-function currentF(now, win){ const v=st.readings.filter(x=>x.f&&now-x.t<(win||250)).map(x=>x.f).sort((a,b)=>a-b); return v.length>=3?v[v.length>>1]:null; }
+function currentF(now, win){ const v=st.readings.filter(x=>x.f&&now-x.t<(win||120)).map(x=>x.f).sort((a,b)=>a-b); return v.length>=2?v[v.length>>1]:null; }
 function trackDecay(db){
   const now=performance.now();
   st.minDb=Math.min(st.minDb+0.05,db);
@@ -412,34 +413,51 @@ function nearestString(f){
   t.forEach((m,i)=>{const d=Math.abs(cents(f,midiToHz(m,st.a4))); if(d<bd){bd=d;best=i}});
   return {i:best,m:t[best],d:bd};
 }
-function drawGauge(c){
+// Square-root scale: the last few cents get most of the dial, so small peg turns are visible.
+const GA=v=>{ const c=Math.max(-50,Math.min(50,v)); return Math.sign(c)*Math.sqrt(Math.abs(c)/50)*80; };
+function drawGauge(c, live){
   const g=$('gauge'), cx=160, cy=140, R=118;
-  const ang=v=>(-90+Math.max(-50,Math.min(50,v))*1.6)*Math.PI/180;
+  const ang=v=>(-90+GA(v))*Math.PI/180;
   const pt=(v,r)=>[cx+r*Math.cos(ang(v)),cy+r*Math.sin(ang(v))];
   const arc=(a,b,col,w)=>{const [x1,y1]=pt(a,R),[x2,y2]=pt(b,R);return `<path d="M${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2}" stroke="${col}" stroke-width="${w}" fill="none"/>`};
   let s=arc(-50,-3,'#cfdcee',14)+arc(3,50,'#f6dcc4',14)+arc(-3,3,'#1f9d5c',14);
-  for(let v=-50;v<=50;v+=10){const [x1,y1]=pt(v,R-12),[x2,y2]=pt(v,R-22);s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8793a1" stroke-width="2"/>`; const [tx,ty]=pt(v,R-34); s+=`<text x="${tx}" y="${ty+4}" font-size="11" text-anchor="middle" fill="#5c6876">${v>0?'+':''}${v}</text>`;}
+  for(const v of [-50,-20,-10,-5,-2,0,2,5,10,20,50]){const [x1,y1]=pt(v,R-12),[x2,y2]=pt(v,R-(Math.abs(v)%10===0?24:19));s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8793a1" stroke-width="2"/>`; if(Math.abs(v)!==2){const [tx,ty]=pt(v,R-36); s+=`<text x="${tx}" y="${ty+4}" font-size="11" text-anchor="middle" fill="#5c6876">${v>0?'+':''}${v}</text>`;}}
   s+=`<text x="${cx-R}" y="${cy+2}" font-size="12" fill="#2f6fb5" font-weight="700">flat</text><text x="${cx+R}" y="${cy+2}" font-size="12" fill="#e07a1f" font-weight="700" text-anchor="end">sharp</text>`;
-  if(c!=null){ const [x,y]=pt(c,R-6); const col=Math.abs(c)<=3?'#1f9d5c':c<0?'#2f6fb5':'#e07a1f'; s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="5" stroke-linecap="round"/>`; }
+  if(c!=null){ const [x,y]=pt(c,R-6); const col=!live?'#aab4c0':Math.abs(c)<=3?'#1f9d5c':c<0?'#2f6fb5':'#e07a1f'; s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="5" stroke-linecap="round"/>`; }
   s+=`<circle cx="${cx}" cy="${cy}" r="8" fill="#16324f"/>`;
   g.innerHTML=s;
+  // fine bar: linear ±10 cents
+  const fb=$('fine'); if(!fb) return;
+  let f=`<rect x="10" y="8" width="300" height="16" rx="8" fill="#eef1f5"/><rect x="${160-15*3}" y="8" width="${30*3}" height="16" fill="#d7efe1"/>`;
+  for(let v=-10;v<=10;v++){ const x=160+v*15; f+=`<line x1="${x}" y1="${v%5===0?4:10}" x2="${x}" y2="${v%5===0?28:22}" stroke="${v===0?'#16324f':'#b6c0cc'}" stroke-width="${v===0?2:1}"/>`; }
+  f+=`<text x="10" y="42" font-size="11" fill="#5c6876">−10¢</text><text x="310" y="42" font-size="11" fill="#5c6876" text-anchor="end">+10¢</text><text x="160" y="42" font-size="11" fill="#5c6876" text-anchor="middle">fine view</text>`;
+  if(c!=null&&Math.abs(c)<=12){ const x=160+Math.max(-10.5,Math.min(10.5,c))*15, col=!live?'#aab4c0':Math.abs(c)<=3?'#1f9d5c':c<0?'#2f6fb5':'#e07a1f'; f+=`<circle cx="${x}" cy="16" r="9" fill="${col}"/>`; }
+  fb.innerHTML=f;
 }
 function updateTune(now){
   const f=currentF(now);
   if(f){
     const ns=nearestString(f), target=midiToHz(ns.m,st.a4), c=cents(f,target), nn=noteName(ns.m);
+    // smooth the needle: follow quickly, but don't jitter; jump straight to a new string
+    if(st.dispC==null||ns.i!==st.dispStr||Math.abs(c-st.dispC)>25) st.dispC=c; else st.dispC+=0.45*(c-st.dispC);
+    st.dispStr=ns.i; st.lastLive=now;
+    const d=st.dispC;
     $('noteName').innerHTML=`${nn.name}<sub>${nn.oct}</sub>`;
     $('tuneString').textContent=`String ${STR_LABEL[ns.i]} · target ${target.toFixed(2)} Hz`;
-    $('freqTxt').textContent=f.toFixed(2)+' Hz';
-    drawGauge(c);
+    $('freqTxt').textContent=f.toFixed(2)+' Hz · '+(d>0?'+':'')+d.toFixed(1)+' cents';
+    drawGauge(d,true);
     const a=$('tuneAction');
     if(ns.d>150){ a.textContent='Far off: tune close first'; a.style.color='var(--bad)'; }
-    else if(Math.abs(c)<=3){ a.textContent='✓ In tune'; a.style.color='var(--ok)'; }
-    else if(c<0){ a.textContent=`↑ Tighten · ${(-c).toFixed(1)} cents flat`; a.style.color='var(--flat)'; }
-    else { a.textContent=`↓ Loosen · ${c.toFixed(1)} cents sharp`; a.style.color='var(--sharp)'; }
-    $('tuneStatus').textContent='Clarity '+(st.last?st.last.cl.toFixed(2):'–')+' · '+st.tuning;
+    else if(Math.abs(d)<=3){ a.textContent='✓ In tune'; a.style.color='var(--ok)'; }
+    else if(d<0){ a.textContent=`↑ Tighten · ${(-d).toFixed(1)} cents flat`; a.style.color='var(--flat)'; }
+    else { a.textContent=`↓ Loosen · ${d.toFixed(1)} cents sharp`; a.style.color='var(--sharp)'; }
+    $('tuneStatus').textContent='Live · clarity '+(st.last?st.last.cl.toFixed(2):'–')+' · '+st.tuning;
     st.hist.push({t:now,c}); st.curTarget=target;
-  } else { st.hist.push({t:now,c:null}); }
+  } else {
+    st.hist.push({t:now,c:null});
+    if(st.lastLive&&now-st.lastLive>600&&!st.greyed){ drawGauge(st.dispC,false); $('tuneStatus').textContent='Holding last reading · pluck again'; st.greyed=true; }
+  }
+  if(f) st.greyed=false;
   while(st.hist.length&&now-st.hist[0].t>10000) st.hist.shift();
   if(frame%2===0) drawHist(now);
   if(frame%6===0&&f) drawSpec(f);
