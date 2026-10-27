@@ -4,181 +4,186 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#16324f">
-<title>SetupScope · guitar setup analyser</title>
+<title>SetupScope · guitar tuner and setup check</title>
 <style>
 :root{
   --bg:#f2f4f7; --card:#fff; --ink:#18222e; --mute:#5c6876; --line:#dde3ea; --navy:#16324f; --accent:#1f5fbf;
-  --ok:#1f9d5c; --warn:#d99a00; --bad:#d64545; --sharp:#e07a1f; --flat:#2f6fb5;
+  --ok:#1f9d5c; --bad:#d64545; --sharp:#e07a1f; --flat:#2f6fb5;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--sans)}
-body{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
-header{background:var(--navy);color:#fff;padding:12px 16px 10px;position:sticky;top:0;z-index:5}
-header h1{margin:0;font-size:18px;letter-spacing:.01em}
-header .sub{font-size:12.5px;opacity:.8}
-main{max-width:640px;margin:0 auto;padding:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
-.card h2{font-size:15px;margin:0 0 8px;color:var(--navy)}
+body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
+header{background:var(--navy);color:#fff;padding:10px 14px;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px}
+header h1{margin:0;font-size:18px;flex:1}
+header h1 span{font-weight:400;opacity:.75;font-size:13px;margin-left:6px}
+header button{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
+main{max-width:560px;margin:0 auto;padding:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.card h2{font-size:15px;margin:0 0 6px;color:var(--navy)}
 .small{font-size:12.5px;color:var(--mute)}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 button,select,input{font:inherit}
-button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-weight:600;color:var(--ink)}
+button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;font-weight:600;color:var(--ink)}
 button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 button.big{width:100%;padding:14px;font-size:16px}
-button:disabled{opacity:.5}
 select,input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;min-width:0}
 label.f{display:flex;flex-direction:column;font-size:12.5px;color:var(--mute);gap:3px;flex:1;min-width:140px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:8px 12px;font-size:13.5px;background:#fff;color:var(--mute)}
+.seg button.on{background:var(--navy);color:#fff}
 nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:6}
-nav.tabs button{flex:1;border:0;border-radius:0;background:none;padding:10px 4px 12px;font-size:12.5px;color:var(--mute);font-weight:600}
+nav.tabs button{flex:1;border:0;border-radius:0;background:none;padding:10px 4px 12px;font-size:13px;color:var(--mute);font-weight:600}
 nav.tabs button.on{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
 .tab{display:none}.tab.on{display:block}
-.note{font-size:64px;font-weight:800;line-height:1;color:var(--navy);text-align:center}
-.note sub{font-size:24px;font-weight:700}
-.freq{text-align:center;font:600 16px var(--mono);color:var(--mute)}
-.action{text-align:center;font-size:20px;font-weight:800;margin:6px 0 2px}
-.status{font-size:13px;text-align:center;color:var(--mute)}
-canvas,svg.gfx{width:100%;display:block}
-.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.kv div{background:var(--bg);border-radius:8px;padding:6px 10px}
-.kv b{display:block;font-size:18px;color:var(--navy)}
+svg.gfx,canvas{width:100%;display:block}
+.notebar{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-top:2px}
+.note{font-size:54px;font-weight:800;line-height:1;color:var(--navy)}
+.note sub{font-size:20px}
+.centsTxt{font:700 18px var(--mono);color:var(--mute)}
+.freq{text-align:center;font:500 13px var(--mono);color:var(--mute)}
+.action{text-align:center;font-size:21px;font-weight:800;margin:4px 0 0;min-height:30px}
+.status{font-size:12.5px;text-align:center;color:var(--mute)}
+.progress{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.progress b{font-size:16px;color:var(--navy)}
+.dots{display:flex;gap:5px}.dots i{width:12px;height:12px;border-radius:50%;background:var(--line);display:block}.dots i.ok{background:var(--ok)}
+.note-tension{border-radius:10px;padding:9px 12px;font-size:13.5px;margin-top:8px;background:#fdf3e6;border:1px solid #f0d6b4}
+.note-tension.ok{background:#eaf6ef;border-color:#c5e6d2}
 .strings{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:8px 0}
-.strings button{padding:10px 0;font-size:14px}
+.strings button{padding:8px 0;font-size:13.5px;line-height:1.2}
+.strings button small{display:block;font-weight:500;color:var(--mute);font-size:11px}
 .strings button.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
 .strings button.ok{background:#e6f5ec}.strings button.adj{background:#fdf0e1}
-.steps{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
-.step{border:1px solid var(--line);border-radius:10px;padding:10px;position:relative;overflow:hidden}
-.step.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
-.step.done{background:#e6f5ec;border-color:#bfe3cc}
-.step .t{font-weight:700;font-size:14px}
-.step .v{font:700 17px var(--mono);margin-top:4px}
-.step .bar{position:absolute;left:0;bottom:0;height:4px;background:var(--accent);width:0}
-.result{border-radius:10px;padding:12px;margin-top:8px;font-size:15px}
-.result.ok{background:#e6f5ec}.result.adj{background:#fdf0e1}.result.bad{background:#fbe5e3}
-.result b.big{font-size:22px;display:block}
+.howto{counter-reset:s;list-style:none;padding:0;margin:6px 0 4px}
+.howto li{counter-increment:s;position:relative;padding:4px 0 4px 32px;font-size:14px}
+.howto li::before{content:counter(s);position:absolute;left:0;top:3px;width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.howto li.now::before{background:var(--accent);box-shadow:0 0 0 3px #cfe0f7}
+.howto li.done::before{content:"✓";background:var(--ok)}
+.howto li .val{font:700 13px var(--mono);color:var(--navy);margin-left:6px}
+.meter{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin:2px 0 6px}
+.meter i{display:block;height:100%;width:0;background:var(--accent)}
+.result{border-radius:10px;padding:12px;margin-top:8px;font-size:14.5px}
+.result.ok{background:#e6f5ec}.result.adj{background:#fdf0e1}
+.result b.big{font-size:21px;display:block;margin-bottom:2px}
 table{border-collapse:collapse;width:100%;font-size:13.5px}
-th,td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:left}
+th,td{padding:6px;border-bottom:1px solid var(--line);text-align:left}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .pill{display:inline-block;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700;white-space:nowrap}
-.pill.ok{background:#e6f5ec;color:#156b3f}.pill.warn{background:#fdf0e1;color:#8a5a00}.pill.bad{background:#fbe5e3;color:#a12d2d}
-.miclevel{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px}
-.miclevel i{display:block;height:100%;width:0;background:var(--ok)}
-details summary{cursor:pointer;font-weight:600;color:var(--navy)}
+.pill.ok{background:#e6f5ec;color:#156b3f}.pill.warn{background:#fdf0e1;color:#8a5a00}
+.lvl{height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;width:44px}
+.lvl i{display:block;height:100%;width:0;background:#7fe0a8}
+details{margin-top:8px}details summary{cursor:pointer;font-weight:600;color:var(--navy);font-size:14px}
+.sheet{position:fixed;inset:0;background:rgba(10,20,35,.45);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.sheet.on{display:flex}
+.sheet .panel{background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+.startover{position:fixed;inset:0;background:rgba(242,244,247,.97);z-index:15;display:flex;align-items:center;justify-content:center;padding:24px}
+.startover .box{max-width:420px;text-align:center}
+.startover h2{color:var(--navy);margin:8px 0}
 .hide{display:none!important}
+ul.tight{padding-left:18px;margin:4px 0}ul.tight li{margin:3px 0}
 </style>
 </head>
 <body>
 <header>
-  <h1>SetupScope</h1>
-  <div class="sub">Guitar setup analyser: tuning, intonation and string tension from your phone's microphone</div>
+  <h1>SetupScope<span>guitar tuner</span></h1>
+  <div class="lvl" title="microphone level"><i id="lvl"></i></div>
+  <button id="gearBtn" aria-label="Settings">Settings</button>
 </header>
 
+<div class="startover" id="startOverlay">
+  <div class="box">
+    <svg viewBox="0 0 80 80" width="72" height="72" aria-hidden="true"><circle cx="40" cy="40" r="38" fill="#16324f"/><path d="M40 18v28m-8-8a8 8 0 0 0 16 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M28 40a12 12 0 0 0 24 0" stroke="#fff" stroke-width="3" fill="none"/><path d="M40 52v8m-7 0h14" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+    <h2>Tune your guitar with your phone</h2>
+    <p class="small">The app listens to your guitar through the microphone. Nothing is recorded or sent anywhere. Best in a quiet room, phone 20–40 cm from the guitar.</p>
+    <button class="primary big" id="startBtn">Start listening</button>
+    <div class="small" id="startMsg" style="margin-top:10px;color:var(--bad)"></div>
+  </div>
+</div>
+
 <main>
-  <div class="card" id="startCard">
-    <h2>Start</h2>
-    <p class="small" style="margin-top:0">The app listens through the microphone and analyses the sound on this phone. Nothing is recorded or sent anywhere. Use it in a quiet room and hold the phone 20–40 cm from the sound hole or amp.</p>
-    <button class="primary big" id="startBtn">Start microphone</button>
-    <div class="small" id="startMsg" style="margin-top:8px"></div>
-  </div>
-
-  <div class="card">
-    <div class="row">
-      <label class="f">Tuning<select id="tuningSel"></select></label>
-      <label class="f">Scale length<select id="scaleSel"></select></label>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <label class="f">Strings<select id="setSel"></select></label>
-      <label class="f">Reference A4 (Hz)<input type="number" id="a4" value="440" min="415" max="466" step="0.5"></label>
-    </div>
-    <div class="row hide" id="customScaleRow" style="margin-top:8px"><label class="f">Custom scale length (mm)<input type="number" id="customScale" value="648" min="300" max="900" step="0.5"></label></div>
-    <div class="miclevel"><i id="lvl"></i></div>
-  </div>
-
-  <!-- =============== TUNE =============== -->
+  <!-- ================= TUNE ================= -->
   <section class="tab on" id="tab-tune">
     <div class="card">
-      <div class="small" id="tuneString" style="text-align:center">Play one string</div>
-      <div class="note" id="noteName">–</div>
-      <div class="freq" id="freqTxt">— Hz</div>
-      <svg class="gfx" id="gauge" viewBox="0 0 320 150" aria-label="Tuning gauge"></svg>
-      <svg class="gfx" id="fine" viewBox="0 0 320 48" aria-label="Fine tuning bar, plus or minus 10 cents" style="max-width:420px;margin:2px auto 0"></svg>
-      <div class="action" id="tuneAction">&nbsp;</div>
-      <div class="status" id="tuneStatus">Start the microphone, then pluck a string.</div>
-    </div>
-    <div class="card">
-      <h2>Pitch over the last 10 seconds</h2>
-      <canvas id="hist" height="150"></canvas>
-      <div class="small">Green band: within ±3 cents (100 cents = one semitone). A line that keeps drifting after you tune means the string has not settled or is slipping.</div>
-    </div>
-    <div class="card">
-      <h2>Overtones and string condition</h2>
-      <canvas id="spec" height="170"></canvas>
-      <div class="kv">
-        <div><span class="small">Inharmonicity B</span><b id="inhB">–</b></div>
-        <div><span class="small">Decay to −20 dB</span><b id="decay">–</b></div>
+      <div class="row" style="justify-content:space-between">
+        <select id="tuningSel" aria-label="Tuning" style="flex:1;max-width:230px"></select>
+        <div class="seg" role="group" aria-label="String selection"><button id="autoBtn" class="on">Auto</button><button id="manBtn">Pick string</button></div>
       </div>
-      <div class="small" style="margin-top:8px">Dots are the measured overtones; ticks are exact multiples of the fundamental. Stiff or old strings push overtones sharp (higher B) and die away faster. Compare against a fresh set of the same gauge.</div>
+      <svg class="gfx" id="head" viewBox="0 0 320 300" aria-label="Guitar headstock: tap a string or peg to tune it" style="max-width:340px;margin:4px auto 0"></svg>
+      <div class="status" id="modeHint">Auto: play any string and it is found for you. Or tap a string to pick it.</div>
+    </div>
+
+    <div class="card">
+      <div class="notebar"><div class="note" id="noteName">–</div><div class="centsTxt" id="centsTxt"></div></div>
+      <div class="freq" id="freqTxt">Play a string</div>
+      <svg class="gfx" id="gauge" viewBox="0 0 320 150" aria-label="Tuning dial"></svg>
+      <svg class="gfx" id="fine" viewBox="0 0 320 48" aria-label="Fine tuning bar" style="max-width:420px;margin:0 auto"></svg>
+      <div class="action" id="tuneAction">&nbsp;</div>
+      <div class="status" id="tuneStatus">&nbsp;</div>
+    </div>
+
+    <div class="card">
+      <div class="progress"><div><b id="progTxt">0 of 6 strings in tune</b><div class="small">A string counts once it holds within ±3 cents for a moment.</div></div><div class="dots" id="dots"></div></div>
+      <div style="margin-top:8px"><canvas id="hist" height="110"></canvas></div>
+      <div class="small">Pitch over the last 10 s. A line that keeps drifting means the string hasn't settled, or is slipping.</div>
+      <div id="tensionNote"></div>
+      <div class="row" style="margin-top:8px"><button id="resetBtn">Start over</button></div>
     </div>
   </section>
 
-  <!-- =============== INTONATION =============== -->
+  <!-- ================= INTONATION ================= -->
   <section class="tab" id="tab-int">
     <div class="card">
-      <h2>Intonation check: where should each bridge saddle go?</h2>
-      <p class="small" style="margin-top:0">For each string: play the 12th-fret harmonic (touch the string lightly above the 12th fret), then fret the same string at the 12th fret and play. If the fretted note is sharp, the saddle must move back; if flat, forward. Tune the open string first.</p>
+      <h2>Is your guitar in tune higher up the neck?</h2>
+      <p class="small" style="margin-top:0">Open strings can be perfectly in tune while chords up the neck sound sour. That is set by where each string rests on the bridge (the saddle). This check measures it and tells you how far to move each saddle.</p>
+      <div class="small" style="font-weight:600;color:var(--ink)">Choose a string (tune it first):</div>
       <div class="strings" id="intStrings"></div>
-      <div class="steps">
-        <div class="step" id="stepH"><div class="t">1 · 12th-fret harmonic</div><div class="v" id="vH">–</div><div class="bar" id="barH"></div></div>
-        <div class="step" id="stepF"><div class="t">2 · Fretted at 12th</div><div class="v" id="vF">–</div><div class="bar" id="barF"></div></div>
-      </div>
+      <ol class="howto" id="howto">
+        <li id="liH">Touch the string lightly right above the 12th fret and pluck: a bell-like note. Let it ring.<span class="val" id="vH"></span></li>
+        <li id="liF">Mute it. Now press the string down at the 12th fret and pluck.<span class="val" id="vF"></span></li>
+        <li id="liR">Read the result below.</li>
+      </ol>
+      <div class="meter"><i id="capBar"></i></div>
       <div class="status" id="intStatus">Choose a string.</div>
       <div id="intResult"></div>
       <div class="row" style="margin-top:8px"><button id="intRedo">Measure this string again</button></div>
     </div>
     <div class="card">
-      <h2>Bridge view</h2>
+      <h2>Bridge: what to adjust</h2>
       <svg class="gfx" id="bridge" viewBox="0 0 340 234" aria-label="Bridge saddle adjustments"></svg>
-      <div class="small">Arrows show which way to move each saddle and by how much. After moving a saddle, retune the open string and check again. OK = within ±2 cents.</div>
-      <table style="margin-top:8px"><thead><tr><th>String</th><th class="num">Harmonic</th><th class="num">Fretted</th><th class="num">Error</th><th>Do</th></tr></thead><tbody id="intTable"></tbody></table>
+      <div class="small">Arrows show which way to move each saddle and by how many millimetres. After moving one, retune the open string and check again. Green = OK (within ±2 cents).</div>
+      <details><summary>Measurements</summary>
+        <table style="margin-top:6px"><thead><tr><th>String</th><th class="num">Harmonic</th><th class="num">Fretted</th><th class="num">Error</th><th>Do</th></tr></thead><tbody id="intTable"></tbody></table>
+      </details>
     </div>
   </section>
 
-  <!-- =============== TENSION =============== -->
-  <section class="tab" id="tab-ten">
+  <!-- ================= ABOUT ================= -->
+  <section class="tab" id="tab-about">
     <div class="card">
-      <h2>String tension</h2>
-      <p class="small" style="margin-top:0">Tension T = 4·μ·L²·f², from the string's mass per metre μ (maker's data), the scale length L and the frequency f. Play a string to see its live tension; bars show the chosen tuning against standard tuning.</p>
-      <div class="row"><button id="unitBtn">Show kgf</button><span class="small" id="tenLive">Live: play a string</span></div>
-      <svg class="gfx" id="tenChart" viewBox="0 0 340 260" aria-label="Tension per string"></svg>
-      <div class="kv">
-        <div><span class="small">Total neck load (this tuning)</span><b id="tenTotal">–</b></div>
-        <div><span class="small">Change vs standard tuning</span><b id="tenDelta">–</b></div>
-      </div>
-      <div id="tenAdvice" style="margin-top:8px"></div>
+      <h2>What this app measures</h2>
+      <ul class="tight small">
+        <li><b>Tuning:</b> the pitch of each string from the microphone, shown as cents off target (100 cents = one semitone). In tune = within ±3 cents.</li>
+        <li><b>Steadiness:</b> how the pitch moves over 10 seconds, to spot a slipping peg or a new string still stretching.</li>
+        <li><b>Intonation:</b> the 12th-fret fretted note against the 12th-fret harmonic, converted into a saddle move in millimetres.</li>
+        <li><b>Tuning change:</b> for alternate tunings, how much slacker each string becomes, from its tension T = 4·μ·L²·f² (μ = string mass per metre from the maker's data).</li>
+      </ul>
     </div>
-  </section>
-
-  <!-- =============== CHECK =============== -->
-  <section class="tab" id="tab-chk">
     <div class="card">
-      <h2>How accurate is this? Run the self-test</h2>
-      <p class="small" style="margin-top:0">Synthesises plucked-string sounds at known frequencies (with realistic overtones, decay and noise) and runs them through the same pitch detector the app uses.</p>
-      <button class="primary big" id="selfTest">Run self-test</button>
+      <h2>Can you trust the readings?</h2>
+      <p class="small" style="margin-top:0">The self-test makes plucked-string sounds at known pitches (with realistic overtones, decay and noise) and runs them through the same detector the tuner uses.</p>
+      <button class="primary big" id="selfTest">Run accuracy self-test</button>
       <div id="selfOut" style="margin-top:8px"></div>
-    </div>
-    <div class="card">
-      <h2>Check with a second device</h2>
-      <p class="small" style="margin-top:0">Play a reference tone from this phone into another tuner (or from a laptop into this app) and compare readings.</p>
+      <p class="small">You can also check against another tuner: play a reference tone from this phone into it, or from a laptop into this app.</p>
       <div class="row"><select id="refSel"><option value="440">A4 · 440.00 Hz</option><option value="82.41">E2 · 82.41 Hz</option><option value="110">A2 · 110.00 Hz</option><option value="196">G3 · 196.00 Hz</option><option value="329.63">E4 · 329.63 Hz</option></select><button id="refBtn">Play tone</button></div>
     </div>
     <div class="card">
-      <h2>Method and limits</h2>
-      <ul class="small" style="padding-left:18px;margin:0">
-        <li>Pitch: McLeod normalised square-difference method on the last ~85 ms of audio, then refined to the fundamental with two band-pass filters centred on that estimate (this removes a ~4-cent sharp bias from stretched overtones just after the pluck). Raw microphone, with echo cancellation, noise suppression and auto-gain turned off.</li>
-        <li>Overtones: 32,768-point spectrum (≈1.5 Hz bins) with peak interpolation; inharmonicity B fitted from f<sub>n</sub> = n·f<sub>1</sub>·√((1+Bn²)/(1+B)).</li>
-        <li>Saddle shift: moving the saddle back by Δ lowers the 12th-fret note relative to the harmonic by Δ/L, so Δ = L(k−1)/(2−k) with k = 2<sup>error/1200</sup>. About 0.37 mm per cent on a 648 mm scale.</li>
-        <li>Tension uses published unit weights (D'Addario EXL110 and EXL120 sets); other strings need the maker's figure (Custom).</li>
-        <li>Limits: noisy rooms, several strings ringing at once, and very weak harmonics reduce accuracy. Phone microphones roll off below ~80 Hz; the low E still works because its overtones carry the pattern.</li>
+      <h2>How it works and its limits</h2>
+      <ul class="tight small">
+        <li>Pitch: McLeod normalised square-difference method on ~85 ms of raw microphone audio (echo cancellation, noise suppression and auto-gain off), refined to the fundamental with two band-pass filters. Updates every screen frame.</li>
+        <li>Auto mode picks the nearest string in the chosen tuning. If a string is more than about 2.5 semitones off, pick it by hand.</li>
+        <li>Saddle move: Δ = L(k−1)/(2−k), k = 2<sup>error/1200</sup>, L = scale length; about 0.37 mm per cent on a 648 mm scale.</li>
+        <li>Tension uses D'Addario's published unit weights for 10–46 and 9–42 sets; other strings can be entered in Settings.</li>
+        <li>Works best with one string ringing in a quiet room. Phone microphones are weak below ~80 Hz; the low E still works through its overtones.</li>
       </ul>
     </div>
   </section>
@@ -187,9 +192,21 @@ details summary{cursor:pointer;font-weight:600;color:var(--navy)}
 <nav class="tabs">
   <button class="on" data-tab="tune">Tune</button>
   <button data-tab="int">Intonation</button>
-  <button data-tab="ten">Tension</button>
-  <button data-tab="chk">Accuracy</button>
+  <button data-tab="about">About &amp; accuracy</button>
 </nav>
+
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0;color:var(--navy);font-size:16px">Settings</h2><button id="sheetClose">Done</button></div>
+    <div class="row" style="margin-top:10px">
+      <label class="f">Reference pitch A4 (Hz)<input type="number" id="a4" value="440" min="415" max="466" step="0.5"></label>
+      <label class="f">Scale length (for intonation)<select id="scaleSel"></select></label>
+    </div>
+    <div class="row hide" id="customScaleRow" style="margin-top:8px"><label class="f">Custom scale length (mm)<input type="number" id="customScale" value="648" min="300" max="900" step="0.5"></label></div>
+    <div class="row" style="margin-top:8px"><label class="f">String set (for the tuning-change note)<select id="setSel"></select></label></div>
+    <p class="small">Scale length is the distance from the nut to the 12th fret, doubled. Most electric guitars are 25.5" (Fender-style) or 24.75" (Gibson-style).</p>
+  </div>
+</div>
 
 <script>
 "use strict";
@@ -307,240 +324,281 @@ function synthPluck(f0, sr, N, B, noise, seed){
 const NAMES=['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
 const noteName=m=>{const r=Math.round(m);return {name:NAMES[((r%12)+12)%12],oct:Math.floor(r/12)-1}};
 const TUNINGS={
-  'Standard (E A D G B E)':[40,45,50,55,59,64],
-  'Drop D (D A D G B E)':[38,45,50,55,59,64],
-  'E♭ standard (half step down)':[39,44,49,54,58,63],
-  'D standard (whole step down)':[38,43,48,53,57,62],
-  'Open G (D G D G B D)':[38,43,50,55,59,62],
-  'Open D (D A D F♯ A D)':[38,45,50,54,57,62],
+  'Standard  E A D G B E':[40,45,50,55,59,64],
+  'Drop D  D A D G B E':[38,45,50,55,59,64],
+  'Half step down  E♭ A♭ D♭ G♭ B♭ E♭':[39,44,49,54,58,63],
+  'Whole step down  D G C F A D':[38,43,48,53,57,62],
+  'Open G  D G D G B D':[38,43,50,55,59,62],
+  'Open D  D A D F♯ A D':[38,45,50,54,57,62],
   'DADGAD':[38,45,50,55,57,62]
 };
-const SCALES={'Fender-style 25.5" (647.7 mm)':647.7,'Gibson-style 24.75" (628.7 mm)':628.65,'PRS-style 25" (635 mm)':635,'Acoustic dreadnought 25.4" (645 mm)':645.2,'Classical 650 mm':650,'Custom…':0};
-// Unit weights in lb/in, from D'Addario's published string data; converted to kg/m.
-const LBIN=17.858;
+const STD='Standard  E A D G B E';
+const SCALES={'Fender-style 25.5" (647.7 mm)':647.7,'Gibson-style 24.75" (628.7 mm)':628.65,'PRS-style 25" (635 mm)':635,'Acoustic 25.4" (645 mm)':645.2,'Classical 650 mm':650,'Custom…':0};
+const LBIN=17.858;   // lb/in -> kg/m
 const SETS={
-  'Electric 10–46 (D\'Addario EXL110)':{g:['.010','.013','.017','.026w','.036w','.046w'],uw:[0.00002215,0.00003744,0.00006402,0.00012671,0.00023964,0.00038216]},
-  'Electric 9–42 (D\'Addario EXL120)':{g:['.009','.011','.016','.024w','.032w','.042w'],uw:[0.00001794,0.00002680,0.00005671,0.00010857,0.00019347,0.00032279]}
+  'Electric 10–46 (D\'Addario EXL110)':{g:['.010','.013','.017','.026','.036','.046'],uw:[0.00002215,0.00003744,0.00006402,0.00012671,0.00023964,0.00038216]},
+  'Electric 9–42 (D\'Addario EXL120)':{g:['.009','.011','.016','.024','.032','.042'],uw:[0.00001794,0.00002680,0.00005671,0.00010857,0.00019347,0.00032279]}
 };
-// string order in arrays: index 0 = high E (1st) ... 5 = low E (6th); tunings are listed low→high, so map.
-const STR_LABEL=['6','5','4','3','2','1'];
+// string index i: 0 = 6th (low E) ... 5 = 1st (high E)
+const STR_NUM=['6','5','4','3','2','1'];
 
 // ---------- state ----------
-const st={running:false, a4:440, tuning:'Standard (E A D G B E)', scale:647.7, set:Object.keys(SETS)[0], kgf:false,
-  hist:[], last:null, readings:[], intSel:5, intStep:'H', intData:{}, onsetDb:-120, peakDb:-120, peakT:0, decayS:null, minDb:-120};
+const st={running:false,a4:440,tuning:STD,scale:647.7,set:Object.keys(SETS)[0],mode:'auto',sel:0,cur:null,
+  tuned:[false,false,false,false,false,false],readings:[],hist:[],dispC:null,dispStr:null,lastLive:0,greyed:false,inSince:null,inStr:null,
+  intSel:0,intStep:'H',intData:{},waitQuiet:false,quietT:0};
 const $=id=>document.getElementById(id);
-function save(){ try{localStorage.setItem('setupscope',JSON.stringify({a4:st.a4,tuning:st.tuning,scale:st.scale,set:st.set,custom:$('customScale').value}))}catch(e){} }
-function load(){ try{const o=JSON.parse(localStorage.getItem('setupscope')||'{}'); Object.assign(st,{a4:o.a4||440,tuning:o.tuning in TUNINGS?o.tuning:st.tuning,scale:o.scale||st.scale,set:o.set in SETS?o.set:st.set}); if(o.custom)$('customScale').value=o.custom;}catch(e){} }
-function scaleMm(){ return st.scale>0?st.scale:(+$('customScale').value||648); }
-function targetsLowHigh(){ return TUNINGS[st.tuning]; }   // MIDI, low E (6th) first
+function save(){ try{localStorage.setItem('setupscope2',JSON.stringify({a4:st.a4,tuning:st.tuning,scale:st.scale,set:st.set,custom:$('customScale').value}))}catch(e){} }
+function load(){ try{const o=JSON.parse(localStorage.getItem('setupscope2')||'{}'); if(o.a4)st.a4=o.a4; if(o.tuning in TUNINGS)st.tuning=o.tuning; if(o.scale!=null)st.scale=o.scale; if(o.set in SETS)st.set=o.set; if(o.custom)$('customScale').value=o.custom;}catch(e){} }
+const scaleMm=()=>st.scale>0?st.scale:(+$('customScale').value||648);
+const targets=()=>TUNINGS[st.tuning];
+const targetHz=i=>midiToHz(targets()[i],st.a4);
+const label=i=>{const n=noteName(targets()[i]);return n.name;};
 
-// ---------- settings UI ----------
+// ---------- settings ----------
 function initSettings(){
   load();
-  $('tuningSel').innerHTML=Object.keys(TUNINGS).map(k=>`<option>${k}</option>`).join('');
+  $('tuningSel').innerHTML=Object.keys(TUNINGS).map(k=>`<option value="${k}">${k.replace(/  /,' · ')}</option>`).join('');
   $('scaleSel').innerHTML=Object.entries(SCALES).map(([k,v])=>`<option value="${v}">${k}</option>`).join('');
-  $('setSel').innerHTML=Object.keys(SETS).map(k=>`<option>${k}</option>`).join('')+'<option value="custom">Custom (enter unit weights)…</option>';
+  $('setSel').innerHTML=Object.keys(SETS).map(k=>`<option>${k}</option>`).join('')+'<option value="custom">Other strings (enter unit weights)…</option>';
   $('tuningSel').value=st.tuning; $('setSel').value=st.set; $('a4').value=st.a4;
   const sv=[...$('scaleSel').options].find(o=>+o.value===st.scale); $('scaleSel').value=sv?sv.value:'0';
   $('customScaleRow').classList.toggle('hide',+$('scaleSel').value!==0);
-  $('tuningSel').onchange=e=>{st.tuning=e.target.value;save();refreshAll()};
-  $('scaleSel').onchange=e=>{st.scale=+e.target.value;$('customScaleRow').classList.toggle('hide',st.scale!==0);save();refreshAll()};
-  $('customScale').oninput=()=>{save();refreshAll()};
-  $('setSel').onchange=e=>{ if(e.target.value==='custom'){ promptCustomSet(); } else st.set=e.target.value; save(); refreshAll(); };
-  $('a4').onchange=e=>{st.a4=Math.min(466,Math.max(415,+e.target.value||440));e.target.value=st.a4;save();refreshAll()};
+  $('tuningSel').onchange=e=>{st.tuning=e.target.value;resetTuned();save();renderAll()};
+  $('scaleSel').onchange=e=>{st.scale=+e.target.value;$('customScaleRow').classList.toggle('hide',st.scale!==0);save();renderAll()};
+  $('customScale').oninput=()=>{save();renderAll()};
+  $('setSel').onchange=e=>{ if(e.target.value==='custom') customSet(); else st.set=e.target.value; save(); renderAll(); };
+  $('a4').onchange=e=>{st.a4=Math.min(466,Math.max(415,+e.target.value||440));e.target.value=st.a4;save();resetTuned();renderAll()};
+  $('gearBtn').onclick=()=>$('sheet').classList.add('on');
+  $('sheetClose').onclick=()=>$('sheet').classList.remove('on');
+  $('sheet').onclick=e=>{ if(e.target.id==='sheet') $('sheet').classList.remove('on'); };
 }
-function promptCustomSet(){
+function customSet(){
   const txt=prompt('Unit weights in lb/in from your string maker\'s chart, high E to low E, separated by commas:','0.00002215,0.00003744,0.00006402,0.00012671,0.00023964,0.00038216');
-  if(!txt){ $('setSel').value=st.set; return; }
-  const uw=txt.split(',').map(Number); if(uw.length!==6||uw.some(v=>!(v>0))){ alert('Need six positive numbers.'); $('setSel').value=st.set; return; }
-  SETS['Custom set']={g:['1','2','3','4','5','6'],uw}; st.set='Custom set';
-  $('setSel').innerHTML=Object.keys(SETS).map(k=>`<option>${k}</option>`).join('')+'<option value="custom">Custom (enter unit weights)…</option>'; $('setSel').value=st.set;
+  const uw=(txt||'').split(',').map(Number);
+  if(uw.length!==6||uw.some(v=>!(v>0))){ if(txt) alert('Need six positive numbers.'); $('setSel').value=st.set; return; }
+  SETS['Custom set']={g:[null,null,null,null,null,null],uw}; st.set='Custom set';
+  $('setSel').innerHTML=Object.keys(SETS).map(k=>`<option>${k}</option>`).join('')+'<option value="custom">Other strings (enter unit weights)…</option>'; $('setSel').value=st.set;
 }
 
 // ---------- audio ----------
-let ctx, analyser, timeBuf, specBuf, osc;
+let ctx, analyser, timeBuf, osc;
+const PITCH_N=4096;
 async function startMic(){
   $('startMsg').textContent='';
   try{
-    if(!window.isSecureContext) throw new Error('The microphone needs a secure page (https:// or localhost). Open the app from its https link.');
+    if(!window.isSecureContext) throw new Error('the microphone needs a secure page. Open the app from its https link.');
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-    ctx=new (window.AudioContext||window.webkitAudioContext)();
-    if(ctx.state==='suspended') await ctx.resume();
-    const src=ctx.createMediaStreamSource(stream);
-    analyser=ctx.createAnalyser(); analyser.fftSize=32768; analyser.smoothingTimeConstant=0;
-    src.connect(analyser);
-    timeBuf=new Float32Array(analyser.fftSize); specBuf=new Float32Array(analyser.frequencyBinCount);
-    st.running=true; $('startCard').classList.add('hide');
+    ctx=new (window.AudioContext||window.webkitAudioContext)(); if(ctx.state==='suspended') await ctx.resume();
+    analyser=ctx.createAnalyser(); analyser.fftSize=16384; analyser.smoothingTimeConstant=0;
+    ctx.createMediaStreamSource(stream).connect(analyser);
+    timeBuf=new Float32Array(analyser.fftSize);
+    st.running=true; $('startOverlay').classList.add('hide');
     try{ if(navigator.wakeLock) await navigator.wakeLock.request('screen'); }catch(e){}
     requestAnimationFrame(loop);
   }catch(err){ $('startMsg').textContent='Could not start: '+err.message; }
 }
 $('startBtn').onclick=startMic;
-
-const PITCH_N=4096;
 let frame=0;
 function loop(){
   if(!st.running) return;
   analyser.getFloatTimeDomainData(timeBuf);
-  const sr=ctx.sampleRate, seg=timeBuf.subarray(timeBuf.length-PITCH_N);
+  const sr=ctx.sampleRate, seg=timeBuf.subarray(timeBuf.length-PITCH_N), now=performance.now();
   const lvl=rmsDb(seg); $('lvl').style.width=Math.max(0,Math.min(100,(lvl+70)*1.6))+'%';
-  trackDecay(lvl);
   let r=null;
   if(lvl>-66){ r=detectPitch(seg,sr,60,1400);
     if(r&&r.clarity>0.8){ const fr=fundamentalPitch(timeBuf.subarray(timeBuf.length-3*PITCH_N),sr,r.f,PITCH_N); if(fr) r.f=fr; } }
-  const now=performance.now();
-  if(r&&r.clarity>0.8){ st.last={f:r.f,cl:r.clarity,t:now}; st.readings.push({f:r.f,t:now}); }
-  else st.readings.push({f:null,t:now});
+  st.readings.push({f:(r&&r.clarity>0.8)?r.f:null,t:now,cl:r?r.clarity:0});
   while(st.readings.length&&now-st.readings[0].t>1500) st.readings.shift();
-  if(frame%3===0) analyser.getFloatFrequencyData(specBuf);
-  updateTune(now); updateIntonation(now); updateTensionLive();
+  updateTune(now); updateIntonation(now);
   frame++; requestAnimationFrame(loop);
 }
-// smoothed current frequency: median of valid readings in the last 250 ms
+// live frequency: median of the valid readings in the last 120 ms
 function currentF(now, win){ const v=st.readings.filter(x=>x.f&&now-x.t<(win||120)).map(x=>x.f).sort((a,b)=>a-b); return v.length>=2?v[v.length>>1]:null; }
-function trackDecay(db){
-  const now=performance.now();
-  st.minDb=Math.min(st.minDb+0.05,db);
-  if(db>st.minDb+18&&db>st.peakDb+6&&db>-45){ st.peakDb=db; st.peakT=now; st.decayDone=false; }   // new pluck
-  if(db>st.peakDb&&now-st.peakT<150){ st.peakDb=db; st.peakT=now; }
-  if(!st.decayDone&&st.peakT&&db<st.peakDb-20){ st.decayS=(now-st.peakT)/1000; st.decayDone=true; st.peakDb=-120; $('decay').textContent=st.decayS.toFixed(1)+' s'; }
-  if(st.peakDb>-120&&now-st.peakT>15000){ st.peakDb=-120; }
-}
+function nearestString(f){ let best=0,bd=1e9; targets().forEach((m,i)=>{const d=Math.abs(cents(f,midiToHz(m,st.a4))); if(d<bd){bd=d;best=i}}); return {i:best,d:bd}; }
 
-// ---------- tune tab ----------
-function nearestString(f){
-  const t=targetsLowHigh(); let best=0,bd=1e9;
-  t.forEach((m,i)=>{const d=Math.abs(cents(f,midiToHz(m,st.a4))); if(d<bd){bd=d;best=i}});
-  return {i:best,m:t[best],d:bd};
+// ---------- headstock illustration ----------
+// Front view, headstock up: low E (6th) on the left. Three pegs per side; the outer strings go to the pegs nearest the nut.
+const NUT_X=i=>110+i*20, NUT_Y=272;
+const POST=[[100,236],[94,170],[88,104],[232,104],[226,170],[220,236]];
+const PEG_X=i=>i<3?34:286;
+function buildHead(){
+  let s='';
+  s+=`<path d="M106 280 L76 64 Q80 18 160 12 Q240 18 244 64 L214 280 Z" fill="#e8d8c3" stroke="#b89f80" stroke-width="2"/>`;
+  s+=`<text x="160" y="46" text-anchor="middle" font-size="12" font-weight="700" fill="#9c8263" letter-spacing="2">SETUPSCOPE</text>`;
+  s+=`<rect x="104" y="280" width="112" height="20" fill="#5b4632"/>`;           // neck
+  s+=`<rect x="102" y="268" width="116" height="9" rx="2" fill="#f4f1ea" stroke="#c9bfae"/>`; // nut
+  for(let i=0;i<6;i++){
+    const [px,py]=POST[i], x=PEG_X(i), side=i<3?-1:1;
+    s+=`<line x1="${px}" y1="${py}" x2="${x-side*16}" y2="${py}" stroke="#a7adb5" stroke-width="5" stroke-linecap="round"/>`;
+    s+=`<g class="peg" data-i="${i}" style="cursor:pointer"><rect id="peg${i}" x="${x-24}" y="${py-17}" width="48" height="34" rx="10" fill="#fff" stroke="#9aa5b3" stroke-width="2"/>`;
+    s+=`<text id="pegT${i}" x="${x}" y="${py+2}" text-anchor="middle" font-size="15" font-weight="800" fill="#18222e"></text>`;
+    s+=`<text id="pegS${i}" x="${x}" y="${py+13}" text-anchor="middle" font-size="9" fill="#5c6876">string ${STR_NUM[i]}</text>`;
+    s+=`<g id="tick${i}" visibility="hidden"><circle cx="${x+side*20}" cy="${py-16}" r="9" fill="#1f9d5c"/><path d="M${x+side*20-4} ${py-16} l3 3 l5 -6" stroke="#fff" stroke-width="2.2" fill="none"/></g></g>`;
+    s+=`<circle cx="${px}" cy="${py}" r="6" fill="#c9ced6" stroke="#8f97a2"/>`;
+  }
+  for(let i=0;i<6;i++){
+    const [px,py]=POST[i];
+    s+=`<line id="str${i}" x1="${NUT_X(i)}" y1="${NUT_Y}" x2="${px}" y2="${py}" stroke="#7d8794" stroke-width="${1.4+(5-i)*0.45}"/>`;
+    s+=`<line id="strN${i}" x1="${NUT_X(i)}" y1="${NUT_Y}" x2="${NUT_X(i)}" y2="300" stroke="#7d8794" stroke-width="${1.4+(5-i)*0.45}"/>`;
+    s+=`<line class="peg" data-i="${i}" x1="${NUT_X(i)}" y1="300" x2="${px}" y2="${py}" stroke="transparent" stroke-width="16" style="cursor:pointer"/>`;
+  }
+  $('head').innerHTML=s;
+  $('head').querySelectorAll('.peg').forEach(el=>el.addEventListener('click',()=>pickString(+el.dataset.i)));
 }
-// Square-root scale: the last few cents get most of the dial, so small peg turns are visible.
-const GA=v=>{ const c=Math.max(-50,Math.min(50,v)); return Math.sign(c)*Math.sqrt(Math.abs(c)/50)*80; };
+let headKey='';
+function paintHead(active, cAct, live){
+  const key=[active,live?Math.round(cAct/2):'x',st.tuned.join(),st.mode,st.sel,st.tuning].join('|'); if(key===headKey) return; headKey=key;
+  for(let i=0;i<6;i++){
+    const on=i===active, col=on?(!live?'#9aa5b3':Math.abs(cAct)<=3?'#1f9d5c':cAct<0?'#2f6fb5':'#e07a1f'):(st.tuned[i]?'#1f9d5c':'#7d8794');
+    for(const id of ['str','strN']){ const el=$(id+i); el.setAttribute('stroke',col); el.setAttribute('stroke-width',(on?2.6:1.4)+(5-i)*0.45); }
+    const peg=$('peg'+i); peg.setAttribute('fill',on?col:(st.tuned[i]?'#eaf6ef':'#fff')); peg.setAttribute('stroke',on?col:(st.tuned[i]?'#1f9d5c':(st.mode==='manual'&&st.sel===i?'#1f5fbf':'#9aa5b3')));
+    peg.setAttribute('stroke-width',st.mode==='manual'&&st.sel===i?3:2);
+    $('pegT'+i).textContent=label(i); $('pegT'+i).setAttribute('fill',on?'#fff':'#18222e'); $('pegS'+i).setAttribute('fill',on?'#fff':'#5c6876');
+    $('tick'+i).setAttribute('visibility',st.tuned[i]?'visible':'hidden');
+  }
+}
+function pickString(i){ st.mode='manual'; st.sel=i; st.dispC=null; setModeUI(); headKey=''; paintHead(i,0,false); }
+function setModeUI(){
+  $('autoBtn').classList.toggle('on',st.mode==='auto'); $('manBtn').classList.toggle('on',st.mode==='manual');
+  $('modeHint').textContent=st.mode==='auto'?'Auto: play any string and it is found for you. Or tap a string to pick it.':`Tuning string ${STR_NUM[st.sel]} (${label(st.sel)}). Tap another string, or switch back to Auto.`;
+}
+$('autoBtn').onclick=()=>{st.mode='auto';st.dispC=null;setModeUI();headKey=''};
+$('manBtn').onclick=()=>pickString(st.cur!=null?st.cur:st.sel);
+
+// ---------- tuner ----------
+const GA=v=>{ const c=Math.max(-50,Math.min(50,v)); return Math.sign(c)*Math.sqrt(Math.abs(c)/50)*80; };   // zoomed dial
+const stateCol=(c,live)=>!live?'#aab4c0':Math.abs(c)<=3?'#1f9d5c':c<0?'#2f6fb5':'#e07a1f';
 function drawGauge(c, live){
-  const g=$('gauge'), cx=160, cy=140, R=118;
-  const ang=v=>(-90+GA(v))*Math.PI/180;
-  const pt=(v,r)=>[cx+r*Math.cos(ang(v)),cy+r*Math.sin(ang(v))];
+  const cx=160, cy=140, R=118, ang=v=>(-90+GA(v))*Math.PI/180, pt=(v,r)=>[cx+r*Math.cos(ang(v)),cy+r*Math.sin(ang(v))];
   const arc=(a,b,col,w)=>{const [x1,y1]=pt(a,R),[x2,y2]=pt(b,R);return `<path d="M${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2}" stroke="${col}" stroke-width="${w}" fill="none"/>`};
   let s=arc(-50,-3,'#cfdcee',14)+arc(3,50,'#f6dcc4',14)+arc(-3,3,'#1f9d5c',14);
   for(const v of [-50,-20,-10,-5,-2,0,2,5,10,20,50]){const [x1,y1]=pt(v,R-12),[x2,y2]=pt(v,R-(Math.abs(v)%10===0?24:19));s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8793a1" stroke-width="2"/>`; if(Math.abs(v)!==2){const [tx,ty]=pt(v,R-36); s+=`<text x="${tx}" y="${ty+4}" font-size="11" text-anchor="middle" fill="#5c6876">${v>0?'+':''}${v}</text>`;}}
   s+=`<text x="${cx-R}" y="${cy+2}" font-size="12" fill="#2f6fb5" font-weight="700">flat</text><text x="${cx+R}" y="${cy+2}" font-size="12" fill="#e07a1f" font-weight="700" text-anchor="end">sharp</text>`;
-  if(c!=null){ const [x,y]=pt(c,R-6); const col=!live?'#aab4c0':Math.abs(c)<=3?'#1f9d5c':c<0?'#2f6fb5':'#e07a1f'; s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="5" stroke-linecap="round"/>`; }
+  if(c!=null){ const [x,y]=pt(c,R-6); s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${stateCol(c,live)}" stroke-width="5" stroke-linecap="round"/>`; }
   s+=`<circle cx="${cx}" cy="${cy}" r="8" fill="#16324f"/>`;
-  g.innerHTML=s;
-  // fine bar: linear ±10 cents
-  const fb=$('fine'); if(!fb) return;
-  let f=`<rect x="10" y="8" width="300" height="16" rx="8" fill="#eef1f5"/><rect x="${160-15*3}" y="8" width="${30*3}" height="16" fill="#d7efe1"/>`;
+  $('gauge').innerHTML=s;
+  let f=`<rect x="10" y="8" width="300" height="16" rx="8" fill="#eef1f5"/><rect x="${160-45}" y="8" width="90" height="16" fill="#d7efe1"/>`;
   for(let v=-10;v<=10;v++){ const x=160+v*15; f+=`<line x1="${x}" y1="${v%5===0?4:10}" x2="${x}" y2="${v%5===0?28:22}" stroke="${v===0?'#16324f':'#b6c0cc'}" stroke-width="${v===0?2:1}"/>`; }
-  f+=`<text x="10" y="42" font-size="11" fill="#5c6876">−10¢</text><text x="310" y="42" font-size="11" fill="#5c6876" text-anchor="end">+10¢</text><text x="160" y="42" font-size="11" fill="#5c6876" text-anchor="middle">fine view</text>`;
-  if(c!=null&&Math.abs(c)<=12){ const x=160+Math.max(-10.5,Math.min(10.5,c))*15, col=!live?'#aab4c0':Math.abs(c)<=3?'#1f9d5c':c<0?'#2f6fb5':'#e07a1f'; f+=`<circle cx="${x}" cy="16" r="9" fill="${col}"/>`; }
-  fb.innerHTML=f;
+  f+=`<text x="10" y="42" font-size="11" fill="#5c6876">−10</text><text x="310" y="42" font-size="11" fill="#5c6876" text-anchor="end">+10</text><text x="160" y="42" font-size="11" fill="#5c6876" text-anchor="middle">fine view (cents)</text>`;
+  if(c!=null&&Math.abs(c)<=12){ const x=160+Math.max(-10.5,Math.min(10.5,c))*15; f+=`<circle cx="${x}" cy="16" r="9" fill="${stateCol(c,live)}"/>`; }
+  $('fine').innerHTML=f;
+}
+function resetTuned(){ st.tuned=[false,false,false,false,false,false]; st.inSince=null; headKey=''; renderProgress(); }
+function renderProgress(){
+  const n=st.tuned.filter(Boolean).length;
+  $('progTxt').textContent=n===6?'All 6 strings in tune ✓':`${n} of 6 strings in tune`;
+  $('dots').innerHTML=st.tuned.map(t=>`<i class="${t?'ok':''}"></i>`).join('');
 }
 function updateTune(now){
+  if(!$('tab-tune').classList.contains('on')) return;
   const f=currentF(now);
   if(f){
-    const ns=nearestString(f), target=midiToHz(ns.m,st.a4), c=cents(f,target), nn=noteName(ns.m);
-    // smooth the needle: follow quickly, but don't jitter; jump straight to a new string
-    if(st.dispC==null||ns.i!==st.dispStr||Math.abs(c-st.dispC)>25) st.dispC=c; else st.dispC+=0.45*(c-st.dispC);
-    st.dispStr=ns.i; st.lastLive=now;
+    const ns=nearestString(f), i=st.mode==='auto'?ns.i:st.sel, target=targetHz(i), c=cents(f,target), nn=noteName(targets()[i]);
+    if(st.dispC==null||i!==st.dispStr||Math.abs(c-st.dispC)>25) st.dispC=c; else st.dispC+=0.45*(c-st.dispC);
+    st.dispStr=i; st.cur=i; st.lastLive=now; st.greyed=false;
     const d=st.dispC;
     $('noteName').innerHTML=`${nn.name}<sub>${nn.oct}</sub>`;
-    $('tuneString').textContent=`String ${STR_LABEL[ns.i]} · target ${target.toFixed(2)} Hz`;
-    $('freqTxt').textContent=f.toFixed(2)+' Hz · '+(d>0?'+':'')+d.toFixed(1)+' cents';
+    $('centsTxt').textContent=(d>0?'+':'')+d.toFixed(1)+'¢';
+    $('freqTxt').textContent=`String ${STR_NUM[i]} · ${f.toFixed(2)} Hz (target ${target.toFixed(2)})`;
     drawGauge(d,true);
     const a=$('tuneAction');
-    if(ns.d>150){ a.textContent='Far off: tune close first'; a.style.color='var(--bad)'; }
-    else if(Math.abs(d)<=3){ a.textContent='✓ In tune'; a.style.color='var(--ok)'; }
-    else if(d<0){ a.textContent=`↑ Tighten · ${(-d).toFixed(1)} cents flat`; a.style.color='var(--flat)'; }
-    else { a.textContent=`↓ Loosen · ${d.toFixed(1)} cents sharp`; a.style.color='var(--sharp)'; }
-    $('tuneStatus').textContent='Live · clarity '+(st.last?st.last.cl.toFixed(2):'–')+' · '+st.tuning;
-    st.hist.push({t:now,c}); st.curTarget=target;
+    if(Math.abs(d)<=3){ a.textContent='✓ In tune'; a.style.color='var(--ok)'; }
+    else if(d<-50){ a.textContent='↑ Tighten (well below)'; a.style.color='var(--flat)'; }
+    else if(d>50){ a.textContent='↓ Loosen (well above)'; a.style.color='var(--sharp)'; }
+    else if(d<0){ a.textContent='↑ Tighten'; a.style.color='var(--flat)'; }
+    else { a.textContent='↓ Loosen'; a.style.color='var(--sharp)'; }
+    $('tuneStatus').textContent=st.mode==='auto'&&ns.d>150?'Far from every string: tap the string you are tuning.':(st.mode==='auto'?'Auto-detected':'Picked by hand');
+    // a string counts as tuned after ~0.8 s within ±3 cents; it loses the tick if it drifts past ±6
+    if(Math.abs(d)<=3){ if(st.inStr!==i||st.inSince==null){st.inStr=i;st.inSince=now;} else if(now-st.inSince>800&&!st.tuned[i]){ st.tuned[i]=true; renderProgress(); } }
+    else { st.inSince=null; if(Math.abs(d)>6&&st.tuned[i]){ st.tuned[i]=false; renderProgress(); } }
+    paintHead(i,d,true);
+    st.hist.push({t:now,c});
   } else {
     st.hist.push({t:now,c:null});
-    if(st.lastLive&&now-st.lastLive>600&&!st.greyed){ drawGauge(st.dispC,false); $('tuneStatus').textContent='Holding last reading · pluck again'; st.greyed=true; }
+    if(st.lastLive&&now-st.lastLive>600&&!st.greyed){ st.greyed=true; drawGauge(st.dispC,false); $('tuneStatus').textContent='Holding last reading · pluck again'; paintHead(st.cur,st.dispC||0,false); }
   }
-  if(f) st.greyed=false;
   while(st.hist.length&&now-st.hist[0].t>10000) st.hist.shift();
   if(frame%2===0) drawHist(now);
-  if(frame%6===0&&f) drawSpec(f);
 }
 function sizeCanvas(cv){ if(!cv.dataset.h) cv.dataset.h=cv.getAttribute('height'); const r=cv.getBoundingClientRect(), d=window.devicePixelRatio||1, h=+cv.dataset.h; if(cv.width!==Math.round(r.width*d)){cv.width=Math.round(r.width*d);cv.height=Math.round(h*d);cv.style.height=h+'px';} const g=cv.getContext('2d'); g.setTransform(d,0,0,d,0,0); return {g,w:r.width,h}; }
 function drawHist(now){
   const {g,w,h}=sizeCanvas($('hist')); g.clearRect(0,0,w,h);
-  const L=34,y=v=>h/2+6-(Math.max(-30,Math.min(30,v))/30)*(h/2-14);
+  const L=30, y=v=>h/2+4-(Math.max(-20,Math.min(20,v))/20)*(h/2-10);
   g.fillStyle='#e6f5ec'; g.fillRect(L,y(3),w-L,y(-3)-y(3));
   g.strokeStyle='#dde3ea'; g.fillStyle='#5c6876'; g.font='11px system-ui'; g.textAlign='right'; g.textBaseline='middle';
-  for(const v of [-30,-15,0,15,30]){ g.beginPath(); g.moveTo(L,y(v)); g.lineTo(w,y(v)); g.stroke(); g.fillText((v>0?'+':'')+v,L-4,y(v)); }
+  for(const v of [-20,-10,0,10,20]){ g.beginPath(); g.moveTo(L,y(v)); g.lineTo(w,y(v)); g.stroke(); g.fillText((v>0?'+':'')+v,L-4,y(v)); }
   g.strokeStyle='#16324f'; g.lineWidth=2; g.beginPath(); let on=false;
-  for(const p of st.hist){ const x=L+(1-(now-p.t)/10000)*(w-L); if(p.c==null){on=false;continue;} if(!on){g.moveTo(x,y(p.c));on=true}else g.lineTo(x,y(p.c)); }
-  g.stroke(); g.textAlign='right'; g.fillStyle='#5c6876'; g.fillText('now →',w-2,h-8); g.textAlign='left'; g.fillText('cents off target',L+4,8);
+  for(const p of st.hist){ const x=L+(1-(now-p.t)/10000)*(w-L); if(p.c==null||Math.abs(p.c)>60){on=false;continue;} if(!on){g.moveTo(x,y(p.c));on=true}else g.lineTo(x,y(p.c)); }
+  g.stroke(); g.textAlign='right'; g.fillStyle='#5c6876'; g.fillText('now',w-2,h-7); g.textAlign='left'; g.fillText('cents',L+4,7);
 }
-function drawSpec(f1){
-  const {g,w,h}=sizeCanvas($('spec')); g.clearRect(0,0,w,h);
-  const binHz=ctx.sampleRate/analyser.fftSize, fmin=60, fmax=3000, L=6, B0=16;
-  const X=f=>L+(Math.log(f/fmin)/Math.log(fmax/fmin))*(w-L-4), Y=db=>h-B0-(Math.max(-110,Math.min(-20,db))+110)/90*(h-B0-6);
-  g.strokeStyle='#dde3ea'; g.fillStyle='#5c6876'; g.font='11px system-ui'; g.textAlign='center';
-  for(const f of [100,200,500,1000,2000]){ g.beginPath(); g.moveTo(X(f),4); g.lineTo(X(f),h-B0); g.stroke(); g.fillText(f>=1000?(f/1000)+'k':f,X(f),h-3); }
-  g.strokeStyle='#8fa6c4'; g.lineWidth=1; g.beginPath();
-  for(let px=0;px<w-L-4;px++){ const fa=fmin*Math.pow(fmax/fmin,px/(w-L-4)), fb=fmin*Math.pow(fmax/fmin,(px+1)/(w-L-4)); let m=-200; for(let k=Math.floor(fa/binHz);k<=Math.ceil(fb/binHz);k++) if(specBuf[k]>m)m=specBuf[k]; const yy=Y(m); px?g.lineTo(L+px,yy):g.moveTo(L+px,yy); }
-  g.stroke();
-  const parts=findPartials(specBuf,binHz,f1,10);
-  for(let n=1;n<=10&&n*f1<fmax;n++){ g.strokeStyle='#16324f'; g.beginPath(); g.moveTo(X(n*f1),4); g.lineTo(X(n*f1),14); g.stroke(); }
-  g.fillStyle='#e07a1f'; for(const p of parts){ g.beginPath(); g.arc(X(p.f),Y(p.db),3.5,0,7); g.fill(); }
-  const B=fitInharmonicity(parts); $('inhB').textContent=B==null?'–':(B*1e4).toFixed(2)+' ×10⁻⁴';
+$('resetBtn').onclick=resetTuned;
+
+// ---------- tuning-change note (string tension) ----------
+function renderTensionNote(){
+  const cur=targets(), std=TUNINGS[STD], set=SETS[st.set], Lm=scaleMm()/1000;
+  if(st.tuning===STD){ $('tensionNote').innerHTML=''; return; }
+  const mu=set.uw.map(v=>v*LBIN).reverse();   // low E first
+  const r=cur.map((m,i)=>tensionN(mu[i],Lm,midiToHz(m,st.a4))/tensionN(mu[i],Lm,midiToHz(std[i],st.a4)));
+  const slack=r.map((v,i)=>({i,v})).filter(o=>o.v<0.8), tight=r.map((v,i)=>({i,v})).filter(o=>o.v>1.2);
+  const g=set.g.slice().reverse(), sug=i=>g[i]?'.0'+Math.round(parseFloat(g[i])*Math.sqrt(1/r[i])*1000):null;
+  let h='';
+  if(slack.length){
+    const list=slack.length===6?`All six strings drop to about ${Math.round(slack[0].v*100)}% of their standard tension`:slack.map(o=>`string ${STR_NUM[o.i]} drops to ${Math.round(o.v*100)}%`).join(', ')+' of standard tension';
+    const fix=slack.every(o=>sug(o.i))?(slack.length===6?` For the same feel, use about a ${sug(5).slice(2)}–${sug(0).slice(2)} set.`:' For the same feel, use '+slack.map(o=>`${sug(o.i)} on string ${STR_NUM[o.i]}`).join(', ')+'.'):'';
+    h+=`<div class="note-tension"><b>Tuning change:</b> ${list.charAt(0).toUpperCase()+list.slice(1)}, so it may feel floppy or buzz.${fix}</div>`;
+  }
+  if(tight.length) h+=`<div class="note-tension"><b>Tuning change:</b> string${tight.length>1?'s':''} ${tight.map(o=>STR_NUM[o.i]).join(', ')} above 120% of standard tension: harder to play, higher risk of breaking.</div>`;
+  if(!h) h=`<div class="note-tension ok"><b>Tuning change:</b> every string stays within 80–120% of its standard tension with your ${st.set.split(' (')[0]} set.</div>`;
+  $('tensionNote').innerHTML=h;
 }
 
-// ---------- intonation tab ----------
+// ---------- intonation ----------
 function initIntonation(){
   const box=$('intStrings'); box.innerHTML='';
-  for(let i=0;i<6;i++){ const b=document.createElement('button'); b.textContent=STR_LABEL[i]; b.onclick=()=>{st.intSel=i;st.intStep='H';st.stepProg=0;delete st.intData[i];renderIntonation()}; box.appendChild(b); }
-  $('intRedo').onclick=()=>{delete st.intData[st.intSel];st.intStep='H';st.stepProg=0;renderIntonation()};
-  st.intSel=0; renderIntonation();
+  for(let i=0;i<6;i++){ const b=document.createElement('button'); b.onclick=()=>{st.intSel=i;st.intStep='H';delete st.intData[i];renderIntonation()}; box.appendChild(b); }
+  $('intRedo').onclick=()=>{delete st.intData[st.intSel];st.intStep='H';renderIntonation()};
 }
-function expectedHz(i){ return midiToHz(targetsLowHigh()[i]+12,st.a4); }   // 12th fret = one octave up
+const expectedHz=i=>midiToHz(targets()[i]+12,st.a4);   // 12th fret = one octave up
 function updateIntonation(now){
   if(!$('tab-int').classList.contains('on')||st.intStep==='done') return;
-  // after the harmonic is captured, wait until the string is muted before listening for the fretted note
   if(st.intStep==='F'&&st.waitQuiet){
     const recent=st.readings.filter(r=>now-r.t<300&&r.f).length;
     if(recent<3){ st.waitQuiet=false; st.quietT=now; }
-    else { $('intStatus').textContent='Got the harmonic. Mute the string, then fret at the 12th and play.'; $('barF').style.width='0'; return; }
+    else { $('intStatus').textContent='Got the harmonic. Mute the string, then press it at the 12th fret and pluck.'; $('capBar').style.width='0'; return; }
   }
   const since=st.intStep==='F'?(st.quietT||0):0;
-  const win=st.readings.filter(r=>now-r.t<900&&r.t>since), valid=win.filter(r=>r.f);
-  const exp=expectedHz(st.intSel);
+  const win=st.readings.filter(r=>now-r.t<900&&r.t>since), valid=win.filter(r=>r.f), exp=expectedHz(st.intSel);
   let prog=0, msg;
-  if(valid.length<win.length*0.8||valid.length<12){ msg=st.intStep==='H'?'Play the 12th-fret harmonic and let it ring…':'Fret the 12th fret and play…'; }
+  if(valid.length<win.length*0.8||valid.length<12){ msg=st.intStep==='H'?'Listening for the harmonic…':'Listening for the fretted note…'; prog=Math.min(0.3,valid.length/40); }
   else{
     const fs=valid.map(r=>r.f).sort((a,b)=>a-b), med=fs[fs.length>>1], spread=cents(fs[fs.length-1],fs[0]), off=cents(med,exp);
-    if(Math.abs(off)>80){ msg=`Hearing ${med.toFixed(1)} Hz: expected about ${exp.toFixed(1)} Hz for string ${STR_LABEL[st.intSel]}. Tune the open string first.`; }
-    else if(spread>2.5){ msg='Hold steady…'; prog=0.4; }
-    else{ prog=1; msg='Captured';
-      const d=st.intData[st.intSel]||{}; d[st.intStep]=med; st.intData[st.intSel]=d;
-      if(st.intStep==='H'){ st.intStep='F'; st.waitQuiet=true; } else { st.intStep='done'; }
+    if(Math.abs(off)>80){ msg=`Hearing ${noteName(hzToMidi(med,st.a4)).name} (${med.toFixed(0)} Hz), expected ${noteName(targets()[st.intSel]).name} for string ${STR_NUM[st.intSel]}. Tune the open string first.`; }
+    else if(spread>2.5){ msg='Hold steady…'; prog=0.6; }
+    else{ const d=st.intData[st.intSel]||{}; d[st.intStep]=med; st.intData[st.intSel]=d;
+      if(st.intStep==='H'){ st.intStep='F'; st.waitQuiet=true; } else st.intStep='done';
       renderIntonation(); return; }
   }
-  $('intStatus').textContent=msg;
-  $(st.intStep==='H'?'barH':'barF').style.width=(prog*100)+'%';
+  $('intStatus').textContent=msg; $('capBar').style.width=(prog*100)+'%';
 }
-function intVerdict(c){ const mm=saddleShift(scaleMm(),c); if(Math.abs(c)<=2) return {cls:'ok',txt:'OK, leave it',mm}; return {cls:'adj',txt:(c>0?'Move saddle BACK ':'Move saddle FORWARD ')+Math.abs(mm).toFixed(1)+' mm',mm}; }
+function intVerdict(c){ const mm=saddleShift(scaleMm(),c); if(Math.abs(c)<=2) return {cls:'ok',txt:'Good: leave this saddle',mm}; return {cls:'adj',txt:(c>0?'Move the saddle back ':'Move the saddle forward ')+Math.abs(mm).toFixed(1)+' mm',mm}; }
 function renderIntonation(){
-  [...$('intStrings').children].forEach((b,i)=>{ const d=st.intData[i]; b.className=(i===st.intSel?'on ':'')+(d&&d.F?(Math.abs(cents(d.F,d.H))<=2?'ok':'adj'):''); });
+  [...$('intStrings').children].forEach((b,i)=>{ const d=st.intData[i]; b.innerHTML=`${STR_NUM[i]}<small>${label(i)}</small>`; b.className=(i===st.intSel?'on ':'')+(d&&d.F?(Math.abs(cents(d.F,d.H))<=2?'ok':'adj'):''); });
   const d=st.intData[st.intSel]||{};
-  $('stepH').className='step'+(st.intStep==='H'?' active':'')+(d.H?' done':''); $('stepF').className='step'+(st.intStep==='F'?' active':'')+(d.F?' done':'');
-  $('vH').textContent=d.H?d.H.toFixed(2)+' Hz':'–'; $('vF').textContent=d.F?d.F.toFixed(2)+' Hz':'–';
-  $('barH').style.width=d.H?'100%':'0'; $('barF').style.width=d.F?'100%':'0';
+  $('liH').className=d.H?'done':(st.intStep==='H'?'now':''); $('liF').className=d.F?'done':(st.intStep==='F'?'now':''); $('liR').className=d.F?'done':'';
+  $('vH').textContent=d.H?d.H.toFixed(2)+' Hz':''; $('vF').textContent=d.F?d.F.toFixed(2)+' Hz':'';
+  $('capBar').style.width=d.F?'100%':'0';
   if(d.H&&d.F){ const c=cents(d.F,d.H), v=intVerdict(c);
-    $('intResult').innerHTML=`<div class="result ${v.cls}"><b class="big">${v.txt}</b>String ${STR_LABEL[st.intSel]}: fretted note is ${Math.abs(c).toFixed(1)} cents ${c>0?'sharp':'flat'} of the harmonic${v.cls==='ok'?' (within ±2 cents)':''}. Scale length ${scaleMm()} mm.</div>`;
-    $('intStatus').textContent='Done. Pick the next string.';
-  } else $('intResult').innerHTML='';
+    $('intResult').innerHTML=`<div class="result ${v.cls}"><b class="big">${v.txt}</b>String ${STR_NUM[st.intSel]}: the fretted note is ${Math.abs(c).toFixed(1)} cents ${c>0?'too high':'too low'} compared with the harmonic${v.cls==='ok'?' (within ±2 cents)':c>0?', so the string is slightly too short':', so the string is slightly too long'}.</div>`;
+    $('intStatus').textContent='Done. Choose the next string.';
+  } else { $('intResult').innerHTML=''; if(!st.intData[st.intSel]) $('intStatus').textContent='Step 1: play the 12th-fret harmonic.'; }
   drawBridge(); fillIntTable();
 }
 function fillIntTable(){
-  let h=''; for(let i=0;i<6;i++){ const d=st.intData[i]; if(!d||!d.F){ h+=`<tr><td>${STR_LABEL[i]}</td><td class="num">${d&&d.H?d.H.toFixed(2):'–'}</td><td class="num">–</td><td class="num">–</td><td></td></tr>`; continue; }
-    const c=cents(d.F,d.H), v=intVerdict(c); h+=`<tr><td>${STR_LABEL[i]}</td><td class="num">${d.H.toFixed(2)}</td><td class="num">${d.F.toFixed(2)}</td><td class="num">${c>0?'+':''}${c.toFixed(1)}¢</td><td><span class="pill ${v.cls==='ok'?'ok':'warn'}">${v.cls==='ok'?'OK':(c>0?'back ':'fwd ')+Math.abs(v.mm).toFixed(1)+' mm'}</span></td></tr>`; }
+  let h=''; for(let i=0;i<6;i++){ const d=st.intData[i]; if(!d||!d.F){ h+=`<tr><td>${STR_NUM[i]} ${label(i)}</td><td class="num">${d&&d.H?d.H.toFixed(2):'–'}</td><td class="num">–</td><td class="num">–</td><td></td></tr>`; continue; }
+    const c=cents(d.F,d.H), v=intVerdict(c); h+=`<tr><td>${STR_NUM[i]} ${label(i)}</td><td class="num">${d.H.toFixed(2)}</td><td class="num">${d.F.toFixed(2)}</td><td class="num">${c>0?'+':''}${c.toFixed(1)}¢</td><td><span class="pill ${v.cls==='ok'?'ok':'warn'}">${v.cls==='ok'?'OK':(c>0?'back ':'fwd ')+Math.abs(v.mm).toFixed(1)+' mm'}</span></td></tr>`; }
   $('intTable').innerHTML=h;
 }
 function drawBridge(){
-  // strings drawn left (low E) to right (high E); neck at the top
   let s=`<text x="170" y="13" text-anchor="middle" font-size="12" fill="#5c6876">↑ towards the neck (forward)</text><text x="170" y="226" text-anchor="middle" font-size="12" fill="#5c6876">↓ towards the tail (back)</text>`;
   s+=`<rect x="20" y="86" width="300" height="56" rx="8" fill="#eef1f5" stroke="#c9d1dc"/>`;
   for(let i=0;i<6;i++){ const x=45+i*50, d=st.intData[i];
@@ -552,72 +610,23 @@ function drawBridge(){
               `<rect x="${x+5}" y="${(y0+y1)/2-9}" width="34" height="16" rx="3" fill="#fff" stroke="#e8c79d"/><text x="${x+22}" y="${(y0+y1)/2+3}" text-anchor="middle" font-size="11" font-weight="700" fill="#8a5a00">${Math.abs(v.mm).toFixed(1)}</text>`; }
       else extra=`<text x="${x}" y="80" text-anchor="middle" font-size="11" font-weight="700" fill="#156b3f">OK</text>`; }
     s+=`<rect x="${x-14}" y="105" width="28" height="18" rx="4" fill="${col}" stroke="${i===st.intSel?'#1f5fbf':'none'}" stroke-width="2.5"/>`;
-    s+=`<text x="${x}" y="118" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${STR_LABEL[i]}</text>`+extra;
+    s+=`<text x="${x}" y="118" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${STR_NUM[i]}</text>`+extra;
   }
   s+=`<text x="24" y="156" font-size="10" fill="#5c6876">numbers = millimetres</text>`;
   $('bridge').innerHTML=s;
 }
 
-// ---------- tension tab ----------
-function setUW(){ const s=SETS[st.set]; return s.uw.map(v=>v*LBIN); }   // kg/m, high E first
-function tensionsFor(midis){ // midis low->high; return array low->high in N
-  const mu=setUW().slice().reverse(), Lm=scaleMm()/1000;
-  return midis.map((m,i)=>tensionN(mu[i],Lm,midiToHz(m,st.a4)));
-}
-const fmtT=n=>st.kgf?(n/9.80665).toFixed(1)+' kgf':n.toFixed(0)+' N';
-function renderTension(){
-  const cur=tensionsFor(targetsLowHigh()), std=tensionsFor(TUNINGS['Standard (E A D G B E)']), set=SETS[st.set];
-  const W=340,H=260,L=56,R=58,T=10,rowH=(H-T-10)/6, max=Math.max(...cur,...std)*1.08;
-  let s='';
-  for(let i=0;i<6;i++){ const y=T+i*rowH, ws=(W-L-R)*std[i]/max, wc=(W-L-R)*cur[i]/max, low=cur[i]<0.8*std[i];
-    const nn=noteName(targetsLowHigh()[i]);
-    s+=`<text x="4" y="${y+rowH/2-2}" font-size="12" font-weight="700" fill="#18222e">${STR_LABEL[i]} · ${nn.name}${nn.oct}</text><text x="4" y="${y+rowH/2+12}" font-size="10.5" fill="#5c6876">${set.g[5-i]}</text>`;
-    s+=`<rect x="${L}" y="${y+8}" width="${ws}" height="${rowH-16}" fill="none" stroke="#9aa5b3" stroke-dasharray="3 2"/>`;
-    s+=`<rect x="${L}" y="${y+11}" width="${wc}" height="${rowH-22}" rx="3" fill="${low?'#e07a1f':'#2f6fb5'}" id="tb${i}"/>`;
-    s+=`<text x="${L+Math.max(wc,ws)+5}" y="${y+rowH/2+4}" font-size="12" font-weight="700" fill="#18222e">${fmtT(cur[i])}</text>`;
-    s+=`<rect x="${L}" y="${y+4}" width="0" height="3" fill="#1f9d5c" id="tl${i}"/>`;
-  }
-  $('tenChart').innerHTML=s;
-  const tc=cur.reduce((a,b)=>a+b,0), ts=std.reduce((a,b)=>a+b,0);
-  $('tenTotal').textContent=fmtT(tc); $('tenDelta').textContent=(tc>=ts?'+':'')+((tc/ts-1)*100).toFixed(1)+'%';
-  const ratio=cur.map((t,i)=>t/std[i]), low=ratio.map((r,i)=>({i,r})).filter(o=>o.r<0.8), high=ratio.map((r,i)=>({i,r})).filter(o=>o.r>1.2);
-  // gauge that would restore standard tension: unit weight scales by std/cur, diameter by its square root
-  const g=set.g.slice().reverse(), sugg=g.map((gs,i)=>{ const d=parseFloat(gs); return isNaN(d)?null:Math.round(d*Math.sqrt(1/ratio[i])*1000); });
-  const range=sugg.every(v=>v)?`${sugg[5]}–${sugg[0]}`:null;
-  let html='';
-  if(low.length){
-    const all=low.length===6;
-    const who=all?`All six strings drop to about ${Math.round(Math.min(...low.map(o=>o.r))*100)}%`:low.map(o=>`string ${STR_LABEL[o.i]} drops to ${Math.round(o.r*100)}%`).join(', ')+'';
-    const fix=all?(range?` For the same feel as standard tuning, use roughly the <b>${range}</b> gauge range.`:''):(sugg.every(v=>v)?` For the same feel, use ${low.map(o=>`<b>.0${sugg[o.i]}</b> on string ${STR_LABEL[o.i]}`).join(', ')}.`:'');
-    html+=`<div class="result adj"><b>Likely to feel slack.</b> ${who.charAt(0).toUpperCase()+who.slice(1)} of standard tension. Below about 80% many players get fret buzz and a floppy feel.${fix}</div>`;
-  }
-  if(high.length) html+=`<div class="result bad"><b>High tension.</b> String${high.length>1?'s':''} ${high.map(o=>STR_LABEL[o.i]).join(', ')} above 120% of standard: harder to fret and more risk of breaking.${range?` A lighter set (about ${range}) keeps the standard feel.`:''}</div>`;
-  if(!html) html=`<div class="result ok">All strings are within 80–120% of their standard-tuning tension for this set.</div>`;
-  $('tenAdvice').innerHTML=html;
-  st.tenMax=max;
-}
-function updateTensionLive(){
-  if(!$('tab-ten').classList.contains('on')) return;
-  const f=currentF(performance.now(),400); if(!f){ return; }
-  const ns=nearestString(f); if(ns.d>150) return;
-  const mu=setUW().slice().reverse()[ns.i], T=tensionN(mu,scaleMm()/1000,f), w=(340-56-58)*T/st.tenMax;
-  for(let i=0;i<6;i++) $('tl'+i).setAttribute('width',i===ns.i?w:0);
-  $('tenLive').textContent=`Live: string ${STR_LABEL[ns.i]} at ${f.toFixed(1)} Hz = ${fmtT(T)} (green line)`;
-}
-$('unitBtn').onclick=()=>{st.kgf=!st.kgf;$('unitBtn').textContent=st.kgf?'Show newtons':'Show kgf';renderTension()};
-
-// ---------- accuracy tab ----------
+// ---------- about: self-test and reference tone ----------
 $('selfTest').onclick=()=>{
   const sr=48000, N=PITCH_N, cases=[82.41,110,146.83,196,246.94,329.63,164.81,659.26];
-  let rows='', worst=0; let seed=7;
+  let rows='', worst=0, seed=7;
   for(const f0 of cases){ for(const det of [-17,0,9]){
     const f=f0*Math.pow(2,det/1200), B=0.00012, x=synthPluck(f,sr,3*N,B,0.02,seed++);
-    const r=detectPitch(x.subarray(x.length-N),sr,60,1400); if(r){ const fr=fundamentalPitch(x,sr,r.f,N); if(fr) r.f=fr; } const truth=f*Math.sqrt(1+B), err=r?cents(r.f,truth):NaN; worst=Math.max(worst,Math.abs(err));
+    const r=detectPitch(x.subarray(x.length-N),sr,60,1400); if(r){ const fr=fundamentalPitch(x,sr,r.f,N); if(fr) r.f=fr; }
+    const truth=f*Math.sqrt(1+B), err=r?cents(r.f,truth):NaN; worst=Math.max(worst,Math.abs(err));
     if(det===0) rows+=`<tr><td class="num">${truth.toFixed(2)}</td><td class="num">${r?r.f.toFixed(2):'–'}</td><td class="num">${isNaN(err)?'–':(err>0?'+':'')+err.toFixed(2)+'¢'}</td></tr>`; } }
-  // saddle formula check against the rule of thumb (~0.37 mm per cent at 648 mm)
-  const mmPerCent=saddleShift(648,1);
-  $('selfOut').innerHTML=`<table><thead><tr><th class="num">True Hz</th><th class="num">Detected</th><th class="num">Error</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="result ${worst<1?'ok':'adj'}" style="margin-top:8px"><b>Worst error over ${cases.length*3} test tones: ${worst.toFixed(2)} cents</b>${worst<1?'Well under the ±3 cent "in tune" band.':'Check the microphone settings.'} Saddle formula: ${mmPerCent.toFixed(3)} mm per cent on a 648 mm scale (luthiers' rule of thumb ≈ 0.37).</div>`;
+  $('selfOut').innerHTML=`<div class="result ${worst<1?'ok':'adj'}"><b class="big">Worst error: ${worst.toFixed(2)} cents</b>over ${cases.length*3} test tones from 82 Hz to 659 Hz. ${worst<1?'Far inside the ±3 cent "in tune" band.':'Larger than expected; check the microphone.'} Saddle formula gives ${saddleShift(648,1).toFixed(3)} mm per cent on a 648 mm scale (guitar techs' rule of thumb ≈ 0.37).</div>
+  <details><summary>Test tones</summary><table style="margin-top:6px"><thead><tr><th class="num">True Hz</th><th class="num">Detected</th><th class="num">Error</th></tr></thead><tbody>${rows}</tbody></table></details>`;
 };
 $('refBtn').onclick=()=>{
   if(!ctx) ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -625,15 +634,15 @@ $('refBtn').onclick=()=>{
   osc=ctx.createOscillator(); const g=ctx.createGain(); g.gain.value=0.25; osc.frequency.value=+$('refSel').value; osc.connect(g).connect(ctx.destination); osc.start(); $('refBtn').textContent='Stop tone';
 };
 
-// ---------- tabs ----------
+// ---------- tabs & init ----------
 document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav.tabs button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.id==='tab-'+b.dataset.tab));
-  if(b.dataset.tab==='ten') renderTension(); if(b.dataset.tab==='int') renderIntonation();
+  if(b.dataset.tab==='int') renderIntonation();
   window.scrollTo(0,0);
 });
-function refreshAll(){ renderTension(); renderIntonation(); }
-initSettings(); initIntonation(); drawGauge(null); renderTension();
+function renderAll(){ headKey=''; paintHead(st.cur,0,false); setModeUI(); renderTensionNote(); renderIntonation(); renderProgress(); }
+initSettings(); buildHead(); initIntonation(); drawGauge(null); renderAll();
 </script>
 </body>
 </html>
