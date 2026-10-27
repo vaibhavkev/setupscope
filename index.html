@@ -604,7 +604,7 @@ function paintHead(active, cAct, live){
     $('tick'+i).setAttribute('visibility',st.tuned[i]&&!on?'visible':'hidden');
   }
 }
-function pickString(i){ st.mode='manual'; st.sel=i; st.dispC=null; st.targetC=null; st.cur=i; disp.reset(); drawGauge(null); setModeUI(); headKey=''; paintHead(i,0,false); renderChips(); }
+function pickString(i){ st.mode='manual'; st.sel=i; st.dispC=null; st.targetC=null; st.cur=i; disp.reset(); drawGauge(null); { const nn=noteName(targets()[i]); $('noteName').innerHTML=`${nn.name}<sub>${nn.oct}</sub>`; $('centsTxt').className='cents'; $('centsTxt').textContent='Pluck string '+STR_NUM[i]; } setModeUI(); headKey=''; paintHead(i,0,false); renderChips(); }
 function setModeUI(){
   $('autoBtn').classList.toggle('on',st.mode==='auto'); $('manBtn').classList.toggle('on',st.mode==='manual');
   $('modeHint').textContent=st.mode==='auto'?'Pluck one string and let it ring while you turn the peg. Tap a string to lock onto it.':`Locked on string ${STR_NUM[st.sel]} (${label(st.sel)}): other strings are ignored, so you can strum. Tap another string to switch.`;
@@ -660,7 +660,9 @@ function updateTune(now, f, dt, res){
     if(i!==st.dispStr) disp.reset();
     st.targetC=c; st.dispC=disp.step(c,now,res&&res.onset); st.dispStr=i;
     const changed=st.cur!==i; st.cur=i; st.lastLive=now; st.lastF=f; st.lastNs=ns;
-    if(changed||$('noteName').textContent==='–'){ renderChips(); const nn=noteName(targets()[i]); $('noteName').innerHTML=`${nn.name}<sub>${nn.oct}</sub>`; }
+    const nn=noteName(targets()[i]), want=nn.name+nn.oct;
+    if(changed) renderChips();
+    if($('noteName').textContent!==want) $('noteName').innerHTML=`${nn.name}<sub>${nn.oct}</sub>`;   // always show the string being tuned
   } else if(res&&res.onset) disp.step(null,now,true);
   const live=st.lastLive&&now-st.lastLive<1500;
   if(st.dispC!=null){
