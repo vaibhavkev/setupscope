@@ -379,6 +379,36 @@ function synthPluck(f0, sr, N, B, noise, seed){
   for(let i=0;i<N;i++) x[i]+=noise*(rnd()*2-1);
   return x;
 }
+// Follow a ringing string as it fades: band-pass around the last pitch and re-measure.
+// Accepts the result only if the band holds a real share of the energy and the waveform is clean.
+function trackPitch(buf, sr, fPrev){
+  const N=fPrev>150?2048:4096, x=buf.subarray(buf.length-3*N);
+  let y=biquadBP(x,sr,fPrev,4); y=biquadBP(y,sr,fPrev,4);
+  const seg=y.subarray(y.length-N), raw=x.subarray(x.length-N);
+  let ef=0,er=0; for(let i=0;i<N;i++){ ef+=seg[i]*seg[i]; er+=raw[i]*raw[i]; }
+  if(10*Math.log10(ef/N+1e-12)<-84||ef/(er+1e-12)<0.2) return null;
+  const r=detectPitch(seg,sr,fPrev*0.87,fPrev*1.15);
+  return r&&r.clarity>0.9?r.f:null;
+}
+// Per-frame pitch tracker used by the tuner: detect, else track through the decay, with a glitch guard.
+function makeTracker(){
+  const t={f:null,lastT:-1e9,strongT:-1e9,pend:[]};
+  t.step=function(buf, sr, now){
+    const N=t.f&&t.f>150&&now-t.lastT<300?2048:4096, seg=buf.subarray(buf.length-N), lvl=rmsDb(seg);
+    let f=null, how=null;
+    if(lvl>-66){ const r=detectPitch(seg,sr,60,1400);
+      if(r&&r.clarity>0.8){ f=fundamentalPitch(buf.subarray(buf.length-3*N),sr,r.f,N)||r.f; how='detect'; } }
+    if(!f&&t.f&&now-t.lastT<400&&now-t.strongT<5000){ f=trackPitch(buf,sr,t.f); if(f) how='track'; }
+    if(!f){ t.pend=[]; return {f:null,how:null,lvl}; }
+    // glitch guard: a jump of more than 70 cents must repeat for 3 frames before it is shown
+    if(t.f&&now-t.lastT<400&&Math.abs(cents(f,t.f))>70){
+      t.pend.push(f); if(t.pend.length<3||Math.abs(cents(t.pend[t.pend.length-1],t.pend[t.pend.length-3]))>25) return {f:null,how:'hold',lvl};
+    }
+    t.pend=[]; t.f=f; t.lastT=now; if(how==='detect') t.strongT=now;
+    return {f,how,lvl};
+  };
+  return t;
+}
 /*DSP-END*/
 
 // ---------- data ----------
@@ -467,18 +497,17 @@ async function startMic(){
   }catch(err){ $('startMsg').textContent='Couldn\'t start: '+err.message; }
 }
 $('startBtn').onclick=startMic;
-let frame=0;
+let frame=0, lastFrameT=0;
+const tracker=makeTracker();
 function loop(){
   if(!st.running) return;
   analyser.getFloatTimeDomainData(timeBuf);
-  const sr=ctx.sampleRate, seg=timeBuf.subarray(timeBuf.length-PITCH_N), now=performance.now();
-  const lvl=rmsDb(seg); $('lvl').style.width=Math.max(0,Math.min(100,(lvl+70)*1.6))+'%';
-  let r=null;
-  if(lvl>-66){ r=detectPitch(seg,sr,60,1400);
-    if(r&&r.clarity>0.8){ const fr=fundamentalPitch(timeBuf.subarray(timeBuf.length-3*PITCH_N),sr,r.f,PITCH_N); if(fr) r.f=fr; } }
-  st.readings.push({f:(r&&r.clarity>0.8)?r.f:null,t:now});
+  const now=performance.now(), res=tracker.step(timeBuf,ctx.sampleRate,now);
+  $('lvl').style.width=Math.max(0,Math.min(100,(res.lvl+70)*1.6))+'%';
+  st.readings.push({f:res.f,t:now,how:res.how});
   while(st.readings.length&&now-st.readings[0].t>1500) st.readings.shift();
-  updateTune(now); updateIntonation(now);
+  const dt=Math.min(0.05,Math.max(0.001,(now-(lastFrameT||now))/1000)); lastFrameT=now;
+  updateTune(now,res.f,dt); updateIntonation(now);
   frame++; requestAnimationFrame(loop);
 }
 // live frequency: median of the valid readings in the last 120 ms
@@ -529,32 +558,40 @@ function paintHead(active, cAct, live){
     $('tick'+i).setAttribute('visibility',st.tuned[i]&&!on?'visible':'hidden');
   }
 }
-function pickString(i){ st.mode='manual'; st.sel=i; st.dispC=null; setModeUI(); headKey=''; paintHead(i,0,false); renderChips(); }
+function pickString(i){ st.mode='manual'; st.sel=i; st.dispC=null; st.targetC=null; st.cur=i; drawGauge(null); setModeUI(); headKey=''; paintHead(i,0,false); renderChips(); }
 function setModeUI(){
   $('autoBtn').classList.toggle('on',st.mode==='auto'); $('manBtn').classList.toggle('on',st.mode==='manual');
   $('modeHint').textContent=st.mode==='auto'?'Play any string. Or tap one to choose it.':`Tuning string ${STR_NUM[st.sel]} (${label(st.sel)}). Tap another string to switch.`;
 }
-$('autoBtn').onclick=()=>{st.mode='auto';st.dispC=null;setModeUI();headKey='';renderChips()};
+$('autoBtn').onclick=()=>{st.mode='auto';st.dispC=null;st.targetC=null;drawGauge(null);setModeUI();headKey='';renderChips()};
 $('manBtn').onclick=()=>pickString(st.cur!=null?st.cur:st.sel);
 
 // ---------- tuner ----------
 const GA=v=>{ const c=Math.max(-50,Math.min(50,v)); return Math.sign(c)*Math.sqrt(Math.abs(c)/50)*78; };   // zoomed dial: small offsets get most of the arc
-function drawGauge(c, live){
-  const cx=160, cy=150, R=128, ang=v=>(-90+GA(v))*Math.PI/180, pt=(v,r)=>[cx+r*Math.cos(ang(v)),cy+r*Math.sin(ang(v))];
-  const arc=(a,b,col,w,r)=>{r=r||R;const [x1,y1]=pt(a,r),[x2,y2]=pt(b,r);return `<path d="M${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}" style="stroke:${col}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`};
+const GCX=160, GCY=150, GR=128;
+function buildGauge(){
+  const ang=v=>(-90+GA(v))*Math.PI/180, pt=(v,r)=>[GCX+r*Math.cos(ang(v)),GCY+r*Math.sin(ang(v))];
+  const arc=(a,b,col,w)=>{const [x1,y1]=pt(a,GR),[x2,y2]=pt(b,GR);return `<path d="M${x1} ${y1} A${GR} ${GR} 0 0 1 ${x2} ${y2}" style="stroke:${col}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`};
   let s=arc(-50,50,'var(--fill2)',8)+arc(-3,3,'var(--green)',8);
-  for(const v of [-50,-20,-10,-5,-2,0,2,5,10,20,50]){ const major=v%10===0||Math.abs(v)===5; const [x1,y1]=pt(v,R-12),[x2,y2]=pt(v,R-(major?24:19)); s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:var(--label3)" stroke-width="${v===0?2.5:1.5}" stroke-linecap="round"/>`;
-    if(Math.abs(v)!==2&&Math.abs(v)!==5){ const [tx,ty]=pt(v,R-38); s+=`<text x="${tx}" y="${ty+4}" font-size="11" text-anchor="middle" style="fill:var(--label2);font-family:var(--round)">${v>0?'+':''}${v}</text>`; } }
-  s+=`<text x="${cx-R+6}" y="${cy+18}" font-size="12" font-weight="600" style="fill:var(--blue)">Flat</text><text x="${cx+R-6}" y="${cy+18}" font-size="12" font-weight="600" text-anchor="end" style="fill:var(--orange)">Sharp</text>`;
-  if(c!=null){ const col=stateVar(c,live), [x,y]=pt(c,R-4), [xa,ya]=pt(c,R);
-    s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" style="stroke:${col}" stroke-width="3.5" stroke-linecap="round"/><circle cx="${xa}" cy="${ya}" r="7" style="fill:${col}" stroke="#fff" stroke-width="2"/>`; }
-  s+=`<circle cx="${cx}" cy="${cy}" r="6" style="fill:var(--label)"/>`;
+  for(const v of [-50,-20,-10,-5,-2,0,2,5,10,20,50]){ const major=v%10===0||Math.abs(v)===5; const [x1,y1]=pt(v,GR-12),[x2,y2]=pt(v,GR-(major?24:19)); s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:var(--label3)" stroke-width="${v===0?2.5:1.5}" stroke-linecap="round"/>`;
+    if(Math.abs(v)!==2&&Math.abs(v)!==5){ const [tx,ty]=pt(v,GR-38); s+=`<text x="${tx}" y="${ty+4}" font-size="11" text-anchor="middle" style="fill:var(--label2);font-family:var(--round)">${v>0?'+':''}${v}</text>`; } }
+  s+=`<text x="${GCX-GR+6}" y="${GCY+18}" font-size="12" font-weight="600" style="fill:var(--blue)">Flat</text><text x="${GCX+GR-6}" y="${GCY+18}" font-size="12" font-weight="600" text-anchor="end" style="fill:var(--orange)">Sharp</text>`;
+  s+=`<g id="needle" visibility="hidden" transform="rotate(0 ${GCX} ${GCY})"><line id="needleL" x1="${GCX}" y1="${GCY}" x2="${GCX}" y2="${GCY-GR+4}" stroke-width="3.5" stroke-linecap="round"/><circle id="needleC" cx="${GCX}" cy="${GCY-GR}" r="7" stroke="#fff" stroke-width="2"/></g>`;
+  s+=`<circle cx="${GCX}" cy="${GCY}" r="6" style="fill:var(--label)"/>`;
   $('gauge').innerHTML=s;
   let f=`<rect x="20" y="12" width="280" height="6" rx="3" style="fill:var(--fill2)"/><rect x="${160-42}" y="12" width="84" height="6" style="fill:var(--green);opacity:.35"/>`;
   for(let v=-10;v<=10;v+=5){ const x=160+v*14; f+=`<line x1="${x}" y1="${v===0?5:8}" x2="${x}" y2="${v===0?25:22}" style="stroke:var(--label3)" stroke-width="${v===0?2:1}"/>`; }
   f+=`<text x="20" y="38" font-size="10.5" style="fill:var(--label2)">−10</text><text x="300" y="38" font-size="10.5" text-anchor="end" style="fill:var(--label2)">+10</text><text x="160" y="38" font-size="10.5" text-anchor="middle" style="fill:var(--label2)">fine</text>`;
-  if(c!=null&&Math.abs(c)<=12){ const x=160+Math.max(-10.6,Math.min(10.6,c))*14; f+=`<circle cx="${x}" cy="15" r="9" style="fill:${stateVar(c,live)}" stroke="#fff" stroke-width="2"/>`; }
+  f+=`<circle id="fineKnob" cx="160" cy="15" r="9" stroke="#fff" stroke-width="2" visibility="hidden"/>`;
   $('fine').innerHTML=f;
+}
+function drawGauge(c, live){
+  const n=$('needle'), k=$('fineKnob');
+  if(c==null){ n.setAttribute('visibility','hidden'); k.setAttribute('visibility','hidden'); return; }
+  const col=stateVar(c,live);
+  n.setAttribute('visibility','visible'); n.setAttribute('transform',`rotate(${GA(c).toFixed(2)} ${GCX} ${GCY})`);
+  $('needleL').style.stroke=col; $('needleC').style.fill=col;
+  if(Math.abs(c)<=12){ k.setAttribute('visibility','visible'); k.setAttribute('cx',(160+Math.max(-10.6,Math.min(10.6,c))*14).toFixed(1)); k.style.fill=col; } else k.setAttribute('visibility','hidden');
 }
 function resetTuned(){ st.tuned=[false,false,false,false,false,false]; st.inSince=null; headKey=''; renderChips(); }
 function renderChips(){
@@ -563,30 +600,37 @@ function renderChips(){
   const cur=st.mode==='manual'?st.sel:st.cur;
   $('chips').innerHTML=st.tuned.map((t,i)=>`<div class="pchip ${t?'ok':''} ${i===cur?'cur':''}">${label(i)}<small>${STR_NUM[i]}</small></div>`).join('');
 }
-function updateTune(now){
+// The needle follows the measured pitch through a critically damped spring, so it glides
+// smoothly between readings (about 60 per second) instead of jumping.
+const SPRING_W=22, SPRING_Z=1.0;
+function updateTune(now, f, dt){
   if(!$('tab-tune').classList.contains('on')) return;
-  const f=currentF(now);
   if(f){
-    const ns=nearestString(f), i=st.mode==='auto'?ns.i:st.sel, target=targetHz(i), c=cents(f,target), nn=noteName(targets()[i]);
-    if(st.dispC==null||i!==st.dispStr||Math.abs(c-st.dispC)>25) st.dispC=c; else st.dispC+=0.45*(c-st.dispC);
-    const changed=st.cur!==i; st.dispStr=i; st.cur=i; st.lastLive=now; st.greyed=false;
-    const d=st.dispC, cls=Math.abs(d)<=3?'ok':d<0?'flat':'sharp';
-    $('noteName').innerHTML=`${nn.name}<sub>${nn.oct}</sub>`;
-    const ce=$('centsTxt'); ce.className='cents '+cls; ce.textContent=Math.abs(d)<=3?'In tune':(d>0?'+':'−')+Math.abs(d).toFixed(1)+' cents';
-    $('freqTxt').textContent=`String ${STR_NUM[i]} · ${f.toFixed(2)} Hz · target ${target.toFixed(2)} Hz${st.mode==='auto'&&ns.d>150?' · far off: choose the string by hand':''}`;
-    drawGauge(d,true);
-    const a=$('tuneAction'); a.style.color=`var(--${cls==='ok'?'green':cls==='flat'?'blue':'orange'})`;
-    a.textContent=cls==='ok'?'Perfect':d<-50?'Tighten a lot':d>50?'Loosen a lot':d<0?'Tighten':'Loosen';
-    // a string counts as tuned after ~0.8 s within ±3 cents; it loses the tick past ±6
-    if(Math.abs(d)<=3){ if(st.inStr!==i||st.inSince==null){st.inStr=i;st.inSince=now;} else if(now-st.inSince>800&&!st.tuned[i]){ st.tuned[i]=true; if(navigator.vibrate) navigator.vibrate(18); renderChips(); } }
-    else { st.inSince=null; if(Math.abs(d)>6&&st.tuned[i]){ st.tuned[i]=false; renderChips(); } }
-    if(changed) renderChips();
-    paintHead(i,d,true);
-    st.hist.push({t:now,c});
-  } else {
-    st.hist.push({t:now,c:null});
-    if(st.lastLive&&now-st.lastLive>600&&!st.greyed){ st.greyed=true; drawGauge(st.dispC,false); $('tuneAction').style.color='var(--label3)'; paintHead(st.cur,st.dispC||0,false); }
+    const ns=nearestString(f);
+    let i=st.mode==='auto'?ns.i:st.sel;
+    if(st.mode==='auto'&&st.cur!=null&&i!==st.cur&&now-st.lastLive<250&&ns.d>35) i=st.cur;   // stay on the string being turned
+    const target=targetHz(i), c=cents(f,target);
+    if(st.dispC==null||i!==st.dispStr){ st.dispC=c; st.vel=0; }
+    st.targetC=c; st.dispStr=i; const changed=st.cur!==i; st.cur=i; st.lastLive=now; st.lastF=f; st.lastNs=ns;
+    if(changed||$('noteName').textContent==='–'){ renderChips(); const nn=noteName(targets()[i]); $('noteName').innerHTML=`${nn.name}<sub>${nn.oct}</sub>`; }
   }
+  const live=st.lastLive&&now-st.lastLive<1500;
+  if(st.dispC!=null&&st.targetC!=null){
+    if(live){ const a=SPRING_W*SPRING_W*(st.targetC-st.dispC)-2*SPRING_Z*SPRING_W*(st.vel||0); st.vel=(st.vel||0)+a*dt; st.dispC+=st.vel*dt; }
+    const d=st.dispC, i=st.cur, cls=Math.abs(d)<=3?'ok':d<0?'flat':'sharp';
+    drawGauge(d,live);
+    if(frame%2===0||!live){
+      const ce=$('centsTxt'); ce.className='cents '+(live?cls:''); ce.textContent=Math.abs(d)<=3?'In tune':(d>0?'+':'−')+Math.abs(d).toFixed(1)+' cents';
+      const a=$('tuneAction'); a.style.color=live?`var(--${cls==='ok'?'green':cls==='flat'?'blue':'orange'})`:'var(--label3)';
+      a.textContent=cls==='ok'?'Perfect':d<-50?'Tighten a lot':d>50?'Loosen a lot':d<0?'Tighten':'Loosen';
+      if(st.lastF) $('freqTxt').textContent=live?`String ${STR_NUM[i]} · ${st.lastF.toFixed(2)} Hz · target ${targetHz(i).toFixed(2)} Hz${st.mode==='auto'&&st.lastNs&&st.lastNs.d>150?' · far off: choose the string by hand':''}`:'Pluck again';
+    }
+    // a string counts as tuned after ~0.8 s within ±3 cents; it loses the tick past ±6
+    if(f){ if(Math.abs(st.targetC)<=3){ if(st.inStr!==i||st.inSince==null){st.inStr=i;st.inSince=now;} else if(now-st.inSince>800&&!st.tuned[i]){ st.tuned[i]=true; if(navigator.vibrate) navigator.vibrate(18); renderChips(); } }
+      else { st.inSince=null; if(Math.abs(st.targetC)>6&&st.tuned[i]){ st.tuned[i]=false; renderChips(); } } }
+    paintHead(i,d,live);
+  }
+  st.hist.push({t:now,c:f?st.targetC:null});
   while(st.hist.length&&now-st.hist[0].t>10000) st.hist.shift();
   if(frame%2===0) drawHist(now);
 }
@@ -719,7 +763,7 @@ document.querySelectorAll('nav.tabbar button').forEach(b=>b.onclick=()=>{
 });
 function renderAll(){ syncValues(); headKey=''; paintHead(st.cur,0,false); setModeUI(); renderTensionNote(); renderIntonation(); renderChips(); }
 if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColors();headKey='';});
-readColors(); initSettings(); buildHead(); initIntonation(); drawGauge(null); renderAll();
+readColors(); initSettings(); buildHead(); buildGauge(); initIntonation(); drawGauge(null); renderAll();
 </script>
 </body>
 </html>
