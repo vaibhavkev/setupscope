@@ -3,208 +3,269 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#16324f">
-<title>SetupScope · guitar tuner and setup check</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<title>SetupScope · Guitar Tuner</title>
 <style>
 :root{
-  --bg:#f2f4f7; --card:#fff; --ink:#18222e; --mute:#5c6876; --line:#dde3ea; --navy:#16324f; --accent:#1f5fbf;
-  --ok:#1f9d5c; --bad:#d64545; --sharp:#e07a1f; --flat:#2f6fb5;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  --bg:#F2F2F7; --card:#FFFFFF; --card2:#F2F2F7; --label:#000000; --label2:rgba(60,60,67,.6); --label3:rgba(60,60,67,.3);
+  --sep:rgba(60,60,67,.18); --fill:rgba(120,120,128,.12); --fill2:rgba(120,120,128,.2);
+  --blue:#007AFF; --green:#34C759; --orange:#FF9500; --red:#FF3B30; --indigo:#5856D6;
+  --blueSoft:rgba(0,122,255,.12); --greenSoft:rgba(52,199,89,.14); --orangeSoft:rgba(255,149,0,.14);
+  --wood1:#EADBC8; --wood2:#D9C3A5; --woodEdge:#C2A57F; --neck:#6B4F36; --metal:#B8BEC6; --metalEdge:#8E959E; --stringc:#8E8E93;
+  --bar:rgba(249,249,249,.86);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
+  --round:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#000000; --card:#1C1C1E; --card2:#2C2C2E; --label:#FFFFFF; --label2:rgba(235,235,245,.6); --label3:rgba(235,235,245,.3);
+    --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill2:rgba(118,118,128,.32);
+    --blue:#0A84FF; --green:#30D158; --orange:#FF9F0A; --red:#FF453A; --indigo:#5E5CE6;
+    --blueSoft:rgba(10,132,255,.2); --greenSoft:rgba(48,209,88,.18); --orangeSoft:rgba(255,159,10,.18);
+    --wood1:#5A4634; --wood2:#4A3929; --woodEdge:#7A6047; --neck:#2E2219; --metal:#8E949C; --metalEdge:#5F656D; --stringc:#9C9CA3;
+    --bar:rgba(22,22,24,.86);
+  }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--sans)}
-body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
-header{background:var(--navy);color:#fff;padding:10px 14px;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px}
-header h1{margin:0;font-size:18px;flex:1}
-header h1 span{font-weight:400;opacity:.75;font-size:13px;margin-left:6px}
-header button{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
-main{max-width:560px;margin:0 auto;padding:10px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
-.card h2{font-size:15px;margin:0 0 6px;color:var(--navy)}
-.small{font-size:12.5px;color:var(--mute)}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-button,select,input{font:inherit}
-button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 14px;font-weight:600;color:var(--ink)}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-button.big{width:100%;padding:14px;font-size:16px}
-select,input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;min-width:0}
-label.f{display:flex;flex-direction:column;font-size:12.5px;color:var(--mute);gap:3px;flex:1;min-width:140px}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.seg button{border:0;border-radius:0;padding:8px 12px;font-size:13.5px;background:#fff;color:var(--mute)}
-.seg button.on{background:var(--navy);color:#fff}
-nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:6}
-nav.tabs button{flex:1;border:0;border-radius:0;background:none;padding:10px 4px 12px;font-size:13px;color:var(--mute);font-weight:600}
-nav.tabs button.on{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
-.tab{display:none}.tab.on{display:block}
+html,body{margin:0;background:var(--bg);color:var(--label);font:17px/1.35 var(--font);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+main{max-width:520px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 16px 8px}
+.titlebar{display:flex;align-items:flex-end;justify-content:space-between;padding:6px 4px 10px}
+.titlebar h1{font-size:34px;font-weight:700;letter-spacing:.37px;margin:0;line-height:1.1}
+.iconbtn{width:36px;height:36px;border-radius:50%;border:0;background:var(--fill);display:flex;align-items:center;justify-content:center;color:var(--blue);padding:0}
+.iconbtn svg{width:20px;height:20px}
+.sub{color:var(--label2);font-size:15px;margin:-6px 4px 12px}
+.card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:16px}
+.section-h{font-size:13px;color:var(--label2);text-transform:uppercase;letter-spacing:.2px;margin:0 16px 6px}
+.foot{font-size:13px;color:var(--label2);margin:6px 16px 18px;line-height:1.35}
+.list{background:var(--card);border-radius:12px;margin-bottom:8px;overflow:hidden}
+.list .rowi{display:flex;align-items:center;min-height:46px;padding:0 16px;position:relative;gap:10px}
+.list .rowi+.rowi::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
+.rowi .k{flex:1}
+.rowi .v{color:var(--label2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
+.rowi .chev{color:var(--label3);font-size:20px;line-height:1;margin-left:2px}
+.rowi select{position:absolute;inset:0;opacity:0;width:100%;font-size:16px}
+.rowi input{border:0;background:transparent;color:var(--label2);font:inherit;text-align:right;width:90px;outline:none}
+button{font:inherit;cursor:pointer}
+.btn{border:0;border-radius:12px;padding:14px 16px;font-size:17px;font-weight:600;background:var(--blue);color:#fff;width:100%}
+.btn.tinted{background:var(--blueSoft);color:var(--blue)}
+.btn.small{width:auto;padding:8px 14px;font-size:15px;border-radius:20px}
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;position:relative}
+.seg button{flex:1;border:0;background:transparent;color:var(--label);font-size:13px;font-weight:600;padding:7px 8px;border-radius:7px;transition:background .2s}
+.seg button.on{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}
+@media (prefers-color-scheme: dark){.seg button.on{background:#636366}}
 svg.gfx,canvas{width:100%;display:block}
-.notebar{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-top:2px}
-.note{font-size:54px;font-weight:800;line-height:1;color:var(--navy)}
-.note sub{font-size:20px}
-.centsTxt{font:700 18px var(--mono);color:var(--mute)}
-.freq{text-align:center;font:500 13px var(--mono);color:var(--mute)}
-.action{text-align:center;font-size:21px;font-weight:800;margin:4px 0 0;min-height:30px}
-.status{font-size:12.5px;text-align:center;color:var(--mute)}
-.progress{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
-.progress b{font-size:16px;color:var(--navy)}
-.dots{display:flex;gap:5px}.dots i{width:12px;height:12px;border-radius:50%;background:var(--line);display:block}.dots i.ok{background:var(--ok)}
-.note-tension{border-radius:10px;padding:9px 12px;font-size:13.5px;margin-top:8px;background:#fdf3e6;border:1px solid #f0d6b4}
-.note-tension.ok{background:#eaf6ef;border-color:#c5e6d2}
-.strings{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:8px 0}
-.strings button{padding:8px 0;font-size:13.5px;line-height:1.2}
-.strings button small{display:block;font-weight:500;color:var(--mute);font-size:11px}
-.strings button.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
-.strings button.ok{background:#e6f5ec}.strings button.adj{background:#fdf0e1}
-.howto{counter-reset:s;list-style:none;padding:0;margin:6px 0 4px}
-.howto li{counter-increment:s;position:relative;padding:4px 0 4px 32px;font-size:14px}
-.howto li::before{content:counter(s);position:absolute;left:0;top:3px;width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.howto li.now::before{background:var(--accent);box-shadow:0 0 0 3px #cfe0f7}
-.howto li.done::before{content:"✓";background:var(--ok)}
-.howto li .val{font:700 13px var(--mono);color:var(--navy);margin-left:6px}
-.meter{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin:2px 0 6px}
-.meter i{display:block;height:100%;width:0;background:var(--accent)}
-.result{border-radius:10px;padding:12px;margin-top:8px;font-size:14.5px}
-.result.ok{background:#e6f5ec}.result.adj{background:#fdf0e1}
-.result b.big{font-size:21px;display:block;margin-bottom:2px}
-table{border-collapse:collapse;width:100%;font-size:13.5px}
-th,td{padding:6px;border-bottom:1px solid var(--line);text-align:left}
+.hint{text-align:center;font-size:13px;color:var(--label2);margin-top:6px}
+/* tuner readout */
+.readout{text-align:center;padding-top:4px}
+.note{font:700 76px/1 var(--round);letter-spacing:-1px;color:var(--label)}
+.note sub{font-size:26px;font-weight:600;color:var(--label2);letter-spacing:0}
+.cents{display:inline-block;font:600 15px var(--round);padding:4px 10px;border-radius:12px;background:var(--fill);color:var(--label2);margin-top:6px;min-width:76px;font-variant-numeric:tabular-nums}
+.cents.ok{background:var(--greenSoft);color:var(--green)}.cents.flat{background:var(--blueSoft);color:var(--blue)}.cents.sharp{background:var(--orangeSoft);color:var(--orange)}
+.freq{font-size:13px;color:var(--label2);margin-top:6px;font-variant-numeric:tabular-nums}
+.action{font:700 22px var(--round);margin:2px 0 0;min-height:30px;text-align:center}
+.progress{display:flex;justify-content:space-between;gap:6px;margin-top:2px}
+.pchip{flex:1;text-align:center;border-radius:10px;background:var(--fill);padding:8px 0 6px;font:600 15px var(--round);color:var(--label2);transition:background .25s,color .25s}
+.pchip small{display:block;font:500 10px var(--font);color:var(--label3);margin-top:1px}
+.pchip.ok{background:var(--green);color:#fff}.pchip.ok small{color:rgba(255,255,255,.85)}
+.pchip.cur{box-shadow:inset 0 0 0 2px var(--blue)}
+.ptitle{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.ptitle b{font-size:17px}
+.ptitle button{border:0;background:none;color:var(--blue);font-size:15px;padding:0}
+.notice{border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.35;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start}
+.notice svg{flex:none;width:22px;height:22px;margin-top:1px}
+.notice.warn{background:var(--orangeSoft)}.notice.warn svg{color:var(--orange)}
+.notice.ok{background:var(--greenSoft)}.notice.ok svg{color:var(--green)}
+/* intonation */
+.strpick{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 2px}
+.strpick button{border:0;border-radius:10px;background:var(--fill);padding:8px 0 6px;font:600 17px var(--round);color:var(--label)}
+.strpick button small{display:block;font:500 11px var(--font);color:var(--label2)}
+.strpick button.on{background:var(--blue);color:#fff}.strpick button.on small{color:rgba(255,255,255,.85)}
+.strpick button.ok:not(.on){background:var(--greenSoft);color:var(--green)}.strpick button.adj:not(.on){background:var(--orangeSoft);color:var(--orange)}
+.steps .rowi{align-items:flex-start;padding-top:12px;padding-bottom:12px}
+.stepicon{flex:none;width:26px;height:26px;border-radius:50%;background:var(--fill2);color:var(--label2);font:700 14px var(--round);display:flex;align-items:center;justify-content:center;margin-top:-2px}
+.rowi.now .stepicon{background:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--blueSoft)}
+.rowi.done .stepicon{background:var(--green);color:#fff}
+.steps .t{font-size:16px;line-height:1.3}
+.steps .t small{display:block;color:var(--label2);font-size:13px;margin-top:2px}
+.steps .val{font:600 14px var(--round);color:var(--label2);white-space:nowrap;margin-left:auto;font-variant-numeric:tabular-nums}
+.capbar{height:4px;border-radius:2px;background:var(--fill);overflow:hidden;margin:2px 4px 8px}
+.capbar i{display:block;height:100%;width:0;background:var(--blue);transition:width .15s}
+.status{text-align:center;font-size:14px;color:var(--label2);margin:4px 8px 10px;min-height:19px}
+.result{border-radius:14px;padding:16px;margin-bottom:16px;text-align:center}
+.result.ok{background:var(--greenSoft)}.result.adj{background:var(--orangeSoft)}
+.result .big{font:700 24px/1.2 var(--round);display:block;margin-bottom:6px}
+.result.ok .big{color:var(--green)}.result.adj .big{color:var(--orange)}
+.result p{margin:0;font-size:15px;color:var(--label)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 4px;border-bottom:.5px solid var(--sep);text-align:left}
+th{color:var(--label2);font-weight:500;font-size:12px}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-.pill{display:inline-block;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700;white-space:nowrap}
-.pill.ok{background:#e6f5ec;color:#156b3f}.pill.warn{background:#fdf0e1;color:#8a5a00}
-.lvl{height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;width:44px}
-.lvl i{display:block;height:100%;width:0;background:#7fe0a8}
-details{margin-top:8px}details summary{cursor:pointer;font-weight:600;color:var(--navy);font-size:14px}
-.sheet{position:fixed;inset:0;background:rgba(10,20,35,.45);z-index:20;display:none;align-items:flex-end;justify-content:center}
+tr:last-child td{border-bottom:0}
+.tag{display:inline-block;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600;white-space:nowrap}
+.tag.ok{background:var(--greenSoft);color:var(--green)}.tag.adj{background:var(--orangeSoft);color:var(--orange)}
+details summary{list-style:none;cursor:pointer;color:var(--blue);font-size:15px;padding:4px 0}
+details summary::-webkit-details-marker{display:none}
+/* tab bar */
+nav.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep);display:flex;justify-content:center;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+nav.tabbar button{flex:1;max-width:170px;border:0;background:none;color:var(--label2);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;font-weight:500;padding:2px 0}
+nav.tabbar button svg{width:26px;height:26px}
+nav.tabbar button.on{color:var(--blue)}
+.tab{display:none}.tab.on{display:block;animation:fade .2s ease}
+@keyframes fade{from{opacity:.4}to{opacity:1}}
+/* sheet */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30;display:none;align-items:flex-end;justify-content:center}
 .sheet.on{display:flex}
-.sheet .panel{background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
-.startover{position:fixed;inset:0;background:rgba(242,244,247,.97);z-index:15;display:flex;align-items:center;justify-content:center;padding:24px}
-.startover .box{max-width:420px;text-align:center}
-.startover h2{color:var(--navy);margin:8px 0}
+.sheet .panel{background:var(--bg);width:100%;max-width:520px;border-radius:14px 14px 0 0;padding:8px 16px calc(20px + env(safe-area-inset-bottom));animation:up .25s ease}
+@keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
+.grabber{width:36px;height:5px;border-radius:3px;background:var(--fill2);margin:0 auto 8px}
+.sheethead{display:flex;justify-content:space-between;align-items:center;margin:4px 4px 14px}
+.sheethead b{font-size:17px}
+.sheethead button{border:0;background:none;color:var(--blue);font-size:17px;font-weight:600}
+/* start screen */
+.start{position:fixed;inset:0;background:var(--bg);z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px calc(32px + env(safe-area-inset-bottom));text-align:center}
+.appicon{width:96px;height:96px;border-radius:22px;background:linear-gradient(160deg,#3A8DFF,#0050C8);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,80,200,.25);margin-bottom:22px}
+.start h2{font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:.3px}
+.start p{color:var(--label2);font-size:16px;margin:0 0 26px;max-width:330px;line-height:1.4}
+.start .feat{text-align:left;max-width:330px;margin:0 0 28px;padding:0;list-style:none}
+.start .feat li{display:flex;gap:12px;align-items:flex-start;margin:12px 0;font-size:15px;color:var(--label2)}
+.start .feat li b{display:block;color:var(--label);font-weight:600}
+.start .feat svg{flex:none;width:28px;height:28px;color:var(--blue)}
+.start .btn{max-width:340px}
+.err{color:var(--red);font-size:14px;margin-top:12px;min-height:18px}
+.lvl{height:4px;width:46px;border-radius:2px;background:var(--fill);overflow:hidden;margin-right:10px;align-self:center}
+.lvl i{display:block;height:100%;width:0;background:var(--green);transition:width .08s}
 .hide{display:none!important}
-ul.tight{padding-left:18px;margin:4px 0}ul.tight li{margin:3px 0}
 </style>
 </head>
 <body>
-<header>
-  <h1>SetupScope<span>guitar tuner</span></h1>
-  <div class="lvl" title="microphone level"><i id="lvl"></i></div>
-  <button id="gearBtn" aria-label="Settings">Settings</button>
-</header>
 
-<div class="startover" id="startOverlay">
-  <div class="box">
-    <svg viewBox="0 0 80 80" width="72" height="72" aria-hidden="true"><circle cx="40" cy="40" r="38" fill="#16324f"/><path d="M40 18v28m-8-8a8 8 0 0 0 16 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M28 40a12 12 0 0 0 24 0" stroke="#fff" stroke-width="3" fill="none"/><path d="M40 52v8m-7 0h14" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
-    <h2>Tune your guitar with your phone</h2>
-    <p class="small">The app listens to your guitar through the microphone. Nothing is recorded or sent anywhere. Best in a quiet room, phone 20–40 cm from the guitar.</p>
-    <button class="primary big" id="startBtn">Start listening</button>
-    <div class="small" id="startMsg" style="margin-top:10px;color:var(--bad)"></div>
-  </div>
+<div class="start" id="startOverlay">
+  <div class="appicon"><svg viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M18 6v16a6 6 0 0 0 12 0V6"/><path d="M24 28v14"/><path d="M17 42h14"/></svg></div>
+  <h2>SetupScope</h2>
+  <p>Tune your guitar and check its setup, using your iPhone or Android microphone.</p>
+  <ul class="feat">
+    <li><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="14" cy="14" r="11"/><path d="M14 14l6-6"/></svg><span><b>Tune any string</b>Play a string and it is found automatically.</span></li>
+    <li><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20h20M8 20V9M14 20V5M20 20v-8"/></svg><span><b>Check intonation</b>Find out which bridge saddles to move, and how far.</span></li>
+    <li><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="11" width="16" height="12" rx="3"/><path d="M10 11V8a4 4 0 0 1 8 0v3"/></svg><span><b>Private</b>Sound is analysed on your phone and never recorded.</span></li>
+  </ul>
+  <button class="btn" id="startBtn">Start Listening</button>
+  <div class="err" id="startMsg"></div>
 </div>
 
 <main>
   <!-- ================= TUNE ================= -->
   <section class="tab on" id="tab-tune">
-    <div class="card">
-      <div class="row" style="justify-content:space-between">
-        <select id="tuningSel" aria-label="Tuning" style="flex:1;max-width:230px"></select>
-        <div class="seg" role="group" aria-label="String selection"><button id="autoBtn" class="on">Auto</button><button id="manBtn">Pick string</button></div>
-      </div>
-      <svg class="gfx" id="head" viewBox="0 0 320 300" aria-label="Guitar headstock: tap a string or peg to tune it" style="max-width:340px;margin:4px auto 0"></svg>
-      <div class="status" id="modeHint">Auto: play any string and it is found for you. Or tap a string to pick it.</div>
-    </div>
+    <div class="titlebar"><h1>Tuner</h1><div style="display:flex"><div class="lvl" title="Microphone level"><i id="lvl"></i></div><button class="iconbtn gear" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div></div>
+
+    <div class="list"><div class="rowi"><span class="k">Tuning</span><span class="v" id="tuningVal"></span><span class="chev">›</span><select id="tuningSel" aria-label="Tuning"></select></div></div>
+    <div style="height:8px"></div>
 
     <div class="card">
-      <div class="notebar"><div class="note" id="noteName">–</div><div class="centsTxt" id="centsTxt"></div></div>
-      <div class="freq" id="freqTxt">Play a string</div>
-      <svg class="gfx" id="gauge" viewBox="0 0 320 150" aria-label="Tuning dial"></svg>
-      <svg class="gfx" id="fine" viewBox="0 0 320 48" aria-label="Fine tuning bar" style="max-width:420px;margin:0 auto"></svg>
+      <div class="seg" role="group" aria-label="String selection"><button id="autoBtn" class="on">Auto Detect</button><button id="manBtn">Choose String</button></div>
+      <svg class="gfx" id="head" viewBox="0 0 320 300" aria-label="Guitar headstock. Tap a string or peg to tune it." style="max-width:330px;margin:8px auto 0"></svg>
+      <div class="hint" id="modeHint"></div>
+    </div>
+
+    <div class="card readout">
+      <div class="note" id="noteName">–</div>
+      <div><span class="cents" id="centsTxt">Play a string</span></div>
+      <svg class="gfx" id="gauge" viewBox="0 0 320 168" aria-label="Tuning dial" style="margin-top:6px"></svg>
+      <svg class="gfx" id="fine" viewBox="0 0 320 40" aria-label="Fine tuning, plus or minus 10 cents"></svg>
       <div class="action" id="tuneAction">&nbsp;</div>
-      <div class="status" id="tuneStatus">&nbsp;</div>
+      <div class="freq" id="freqTxt">&nbsp;</div>
     </div>
 
     <div class="card">
-      <div class="progress"><div><b id="progTxt">0 of 6 strings in tune</b><div class="small">A string counts once it holds within ±3 cents for a moment.</div></div><div class="dots" id="dots"></div></div>
-      <div style="margin-top:8px"><canvas id="hist" height="110"></canvas></div>
-      <div class="small">Pitch over the last 10 s. A line that keeps drifting means the string hasn't settled, or is slipping.</div>
-      <div id="tensionNote"></div>
-      <div class="row" style="margin-top:8px"><button id="resetBtn">Start over</button></div>
+      <div class="ptitle"><b id="progTxt">0 of 6 in tune</b><button id="resetBtn">Start Over</button></div>
+      <div class="progress" id="chips"></div>
+      <canvas id="hist" height="96" style="margin-top:14px"></canvas>
     </div>
+    <div class="foot" style="margin-top:-8px">A string turns green once it holds within ±3 cents. The line shows the last 10 seconds: if it keeps drifting, the string is still settling or the peg is slipping.</div>
+    <div id="tensionNote"></div>
   </section>
 
   <!-- ================= INTONATION ================= -->
   <section class="tab" id="tab-int">
-    <div class="card">
-      <h2>Is your guitar in tune higher up the neck?</h2>
-      <p class="small" style="margin-top:0">Open strings can be perfectly in tune while chords up the neck sound sour. That is set by where each string rests on the bridge (the saddle). This check measures it and tells you how far to move each saddle.</p>
-      <div class="small" style="font-weight:600;color:var(--ink)">Choose a string (tune it first):</div>
-      <div class="strings" id="intStrings"></div>
-      <ol class="howto" id="howto">
-        <li id="liH">Touch the string lightly right above the 12th fret and pluck: a bell-like note. Let it ring.<span class="val" id="vH"></span></li>
-        <li id="liF">Mute it. Now press the string down at the 12th fret and pluck.<span class="val" id="vF"></span></li>
-        <li id="liR">Read the result below.</li>
-      </ol>
-      <div class="meter"><i id="capBar"></i></div>
-      <div class="status" id="intStatus">Choose a string.</div>
-      <div id="intResult"></div>
-      <div class="row" style="margin-top:8px"><button id="intRedo">Measure this string again</button></div>
+    <div class="titlebar"><h1>Intonation</h1><button class="iconbtn gear" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+    <p class="sub">Open strings can be in tune while chords higher up the neck sound sour. This check tells you how far to move each bridge saddle to fix it.</p>
+
+    <div class="section-h">Choose a string</div>
+    <div class="card" style="padding-top:4px">
+      <div class="strpick" id="intStrings"></div>
     </div>
+
+    <div class="section-h">Steps</div>
+    <div class="list steps">
+      <div class="rowi" id="liH"><span class="stepicon">1</span><span class="t">Play the 12th-fret harmonic<small>Touch the string lightly above the 12th fret and pluck. Let it ring.</small></span><span class="val" id="vH"></span></div>
+      <div class="rowi" id="liF"><span class="stepicon">2</span><span class="t">Play the 12th fret<small>Mute the string, then press it down at the 12th fret and pluck.</small></span><span class="val" id="vF"></span></div>
+    </div>
+    <div class="capbar"><i id="capBar"></i></div>
+    <div class="status" id="intStatus"></div>
+    <div id="intResult"></div>
+
+    <div class="section-h">Bridge</div>
     <div class="card">
-      <h2>Bridge: what to adjust</h2>
       <svg class="gfx" id="bridge" viewBox="0 0 340 234" aria-label="Bridge saddle adjustments"></svg>
-      <div class="small">Arrows show which way to move each saddle and by how many millimetres. After moving one, retune the open string and check again. Green = OK (within ±2 cents).</div>
-      <details><summary>Measurements</summary>
-        <table style="margin-top:6px"><thead><tr><th>String</th><th class="num">Harmonic</th><th class="num">Fretted</th><th class="num">Error</th><th>Do</th></tr></thead><tbody id="intTable"></tbody></table>
+      <details><summary>Show measurements</summary>
+        <table><thead><tr><th>String</th><th class="num">Harmonic</th><th class="num">Fretted</th><th class="num">Off</th><th>Do</th></tr></thead><tbody id="intTable"></tbody></table>
       </details>
     </div>
+    <div class="foot" style="margin-top:-8px">Tune the open string before measuring. After moving a saddle, retune and check again. Green means within ±2 cents.</div>
+    <div style="padding:0 0 8px"><button class="btn tinted" id="intRedo">Measure This String Again</button></div>
   </section>
 
   <!-- ================= ABOUT ================= -->
   <section class="tab" id="tab-about">
+    <div class="titlebar"><h1>About</h1></div>
+    <div class="section-h">Accuracy</div>
     <div class="card">
-      <h2>What this app measures</h2>
-      <ul class="tight small">
-        <li><b>Tuning:</b> the pitch of each string from the microphone, shown as cents off target (100 cents = one semitone). In tune = within ±3 cents.</li>
-        <li><b>Steadiness:</b> how the pitch moves over 10 seconds, to spot a slipping peg or a new string still stretching.</li>
-        <li><b>Intonation:</b> the 12th-fret fretted note against the 12th-fret harmonic, converted into a saddle move in millimetres.</li>
-        <li><b>Tuning change:</b> for alternate tunings, how much slacker each string becomes, from its tension T = 4·μ·L²·f² (μ = string mass per metre from the maker's data).</li>
-      </ul>
+      <p style="margin:0 0 12px;font-size:15px;color:var(--label2)">The self-test makes plucked-string sounds at known pitches, with realistic overtones, decay and noise, and runs them through the same detector the tuner uses.</p>
+      <button class="btn" id="selfTest">Run Accuracy Test</button>
+      <div id="selfOut"></div>
     </div>
-    <div class="card">
-      <h2>Can you trust the readings?</h2>
-      <p class="small" style="margin-top:0">The self-test makes plucked-string sounds at known pitches (with realistic overtones, decay and noise) and runs them through the same detector the tuner uses.</p>
-      <button class="primary big" id="selfTest">Run accuracy self-test</button>
-      <div id="selfOut" style="margin-top:8px"></div>
-      <p class="small">You can also check against another tuner: play a reference tone from this phone into it, or from a laptop into this app.</p>
-      <div class="row"><select id="refSel"><option value="440">A4 · 440.00 Hz</option><option value="82.41">E2 · 82.41 Hz</option><option value="110">A2 · 110.00 Hz</option><option value="196">G3 · 196.00 Hz</option><option value="329.63">E4 · 329.63 Hz</option></select><button id="refBtn">Play tone</button></div>
+    <div class="section-h">Compare with another tuner</div>
+    <div class="list">
+      <div class="rowi"><span class="k">Reference tone</span><span class="v" id="refVal">A4 · 440 Hz</span><span class="chev">›</span><select id="refSel"><option value="440">A4 · 440 Hz</option><option value="82.41">E2 · 82.41 Hz</option><option value="110">A2 · 110 Hz</option><option value="196">G3 · 196 Hz</option><option value="329.63">E4 · 329.63 Hz</option></select></div>
+      <div class="rowi"><button class="btn small" id="refBtn" style="margin:8px 0">Play Tone</button></div>
     </div>
-    <div class="card">
-      <h2>How it works and its limits</h2>
-      <ul class="tight small">
-        <li>Pitch: McLeod normalised square-difference method on ~85 ms of raw microphone audio (echo cancellation, noise suppression and auto-gain off), refined to the fundamental with two band-pass filters. Updates every screen frame.</li>
-        <li>Auto mode picks the nearest string in the chosen tuning. If a string is more than about 2.5 semitones off, pick it by hand.</li>
-        <li>Saddle move: Δ = L(k−1)/(2−k), k = 2<sup>error/1200</sup>, L = scale length; about 0.37 mm per cent on a 648 mm scale.</li>
-        <li>Tension uses D'Addario's published unit weights for 10–46 and 9–42 sets; other strings can be entered in Settings.</li>
-        <li>Works best with one string ringing in a quiet room. Phone microphones are weak below ~80 Hz; the low E still works through its overtones.</li>
-      </ul>
+    <div class="foot">Play the tone into another tuner, or from a laptop into this app, and compare the readings.</div>
+    <div class="section-h">What it measures</div>
+    <div class="list">
+      <div class="rowi" style="padding:12px 16px;display:block;font-size:15px"><b>Tuning.</b> <span style="color:var(--label2)">The pitch of each string, as cents off target (100 cents = one semitone). In tune means within ±3 cents.</span></div>
+      <div class="rowi" style="padding:12px 16px;display:block;font-size:15px"><b>Intonation.</b> <span style="color:var(--label2)">The fretted 12th-fret note against the 12th-fret harmonic, turned into a saddle move: Δ = L(k−1)/(2−k), k = 2<sup>cents/1200</sup>, about 0.37 mm per cent on a 648 mm scale.</span></div>
+      <div class="rowi" style="padding:12px 16px;display:block;font-size:15px"><b>Tuning changes.</b> <span style="color:var(--label2)">String tension T = 4·μ·L²·f² from the maker's mass per metre μ, compared with standard tuning.</span></div>
     </div>
+    <div class="section-h">How it works</div>
+    <div class="list">
+      <div class="rowi" style="padding:12px 16px;display:block;font-size:15px;color:var(--label2)">Pitch is found with the McLeod normalised square-difference method on about 85 ms of raw microphone audio, then refined to the fundamental with two band-pass filters. It updates every screen frame.</div>
+      <div class="rowi" style="padding:12px 16px;display:block;font-size:15px;color:var(--label2)">Works best with one string ringing in a quiet room. If a string is more than about two semitones off, choose it by hand. Tension uses D'Addario's published unit weights.</div>
+    </div>
+    <div class="foot">SetupScope · K E Vaibhav (ME22B048) · Data Visualisation, Assignment 2</div>
   </section>
 </main>
 
-<nav class="tabs">
-  <button class="on" data-tab="tune">Tune</button>
-  <button data-tab="int">Intonation</button>
-  <button data-tab="about">About &amp; accuracy</button>
+<nav class="tabbar">
+  <button class="on" data-tab="tune"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 3v9a4 4 0 0 0 8 0V3"/><path d="M14 16v9"/><path d="M10 25h8"/></svg>Tuner</button>
+  <button data-tab="int"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="10" width="22" height="8" rx="2.5"/><path d="M8 4v6M13 4v6M18 4v6M8 18v6M13 18v6M18 18v6"/></svg>Intonation</button>
+  <button data-tab="about"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="14" cy="14" r="11"/><path d="M14 13v7"/><circle cx="14" cy="8.5" r=".6" fill="currentColor"/></svg>About</button>
 </nav>
 
 <div class="sheet" id="sheet">
   <div class="panel">
-    <div class="row" style="justify-content:space-between"><h2 style="margin:0;color:var(--navy);font-size:16px">Settings</h2><button id="sheetClose">Done</button></div>
-    <div class="row" style="margin-top:10px">
-      <label class="f">Reference pitch A4 (Hz)<input type="number" id="a4" value="440" min="415" max="466" step="0.5"></label>
-      <label class="f">Scale length (for intonation)<select id="scaleSel"></select></label>
+    <div class="grabber"></div>
+    <div class="sheethead"><span style="width:44px"></span><b>Settings</b><button id="sheetClose">Done</button></div>
+    <div class="list">
+      <div class="rowi"><span class="k">Reference pitch A4</span><input type="number" id="a4" value="440" min="415" max="466" step="0.5" inputmode="decimal"><span style="color:var(--label2)">Hz</span></div>
+      <div class="rowi"><span class="k">Scale length</span><span class="v" id="scaleVal"></span><span class="chev">›</span><select id="scaleSel"></select></div>
+      <div class="rowi hide" id="customScaleRow"><span class="k">Custom length</span><input type="number" id="customScale" value="648" min="300" max="900" step="0.5" inputmode="decimal"><span style="color:var(--label2)">mm</span></div>
+      <div class="rowi"><span class="k">Strings</span><span class="v" id="setVal"></span><span class="chev">›</span><select id="setSel"></select></div>
     </div>
-    <div class="row hide" id="customScaleRow" style="margin-top:8px"><label class="f">Custom scale length (mm)<input type="number" id="customScale" value="648" min="300" max="900" step="0.5"></label></div>
-    <div class="row" style="margin-top:8px"><label class="f">String set (for the tuning-change note)<select id="setSel"></select></label></div>
-    <p class="small">Scale length is the distance from the nut to the 12th fret, doubled. Most electric guitars are 25.5" (Fender-style) or 24.75" (Gibson-style).</p>
+    <div class="foot">Scale length is used for intonation; the string set for the tuning-change note. Most electric guitars are 25.5" (Fender-style) or 24.75" (Gibson-style).</div>
   </div>
 </div>
 
@@ -324,60 +385,68 @@ function synthPluck(f0, sr, N, B, noise, seed){
 const NAMES=['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
 const noteName=m=>{const r=Math.round(m);return {name:NAMES[((r%12)+12)%12],oct:Math.floor(r/12)-1}};
 const TUNINGS={
-  'Standard  E A D G B E':[40,45,50,55,59,64],
-  'Drop D  D A D G B E':[38,45,50,55,59,64],
-  'Half step down  E♭ A♭ D♭ G♭ B♭ E♭':[39,44,49,54,58,63],
-  'Whole step down  D G C F A D':[38,43,48,53,57,62],
-  'Open G  D G D G B D':[38,43,50,55,59,62],
-  'Open D  D A D F♯ A D':[38,45,50,54,57,62],
+  'Standard':[40,45,50,55,59,64],
+  'Drop D':[38,45,50,55,59,64],
+  'Half Step Down':[39,44,49,54,58,63],
+  'Whole Step Down':[38,43,48,53,57,62],
+  'Open G':[38,43,50,55,59,62],
+  'Open D':[38,45,50,54,57,62],
   'DADGAD':[38,45,50,55,57,62]
 };
-const STD='Standard  E A D G B E';
-const SCALES={'Fender-style 25.5" (647.7 mm)':647.7,'Gibson-style 24.75" (628.7 mm)':628.65,'PRS-style 25" (635 mm)':635,'Acoustic 25.4" (645 mm)':645.2,'Classical 650 mm':650,'Custom…':0};
+const STD='Standard';
+const SCALES={'25.5" Fender-style':647.7,'24.75" Gibson-style':628.65,'25" PRS-style':635,'25.4" Acoustic':645.2,'650 mm Classical':650,'Custom':0};
 const LBIN=17.858;   // lb/in -> kg/m
 const SETS={
-  'Electric 10–46 (D\'Addario EXL110)':{g:['.010','.013','.017','.026','.036','.046'],uw:[0.00002215,0.00003744,0.00006402,0.00012671,0.00023964,0.00038216]},
-  'Electric 9–42 (D\'Addario EXL120)':{g:['.009','.011','.016','.024','.032','.042'],uw:[0.00001794,0.00002680,0.00005671,0.00010857,0.00019347,0.00032279]}
+  '10–46 Electric':{g:['.010','.013','.017','.026','.036','.046'],uw:[0.00002215,0.00003744,0.00006402,0.00012671,0.00023964,0.00038216]},
+  '9–42 Electric':{g:['.009','.011','.016','.024','.032','.042'],uw:[0.00001794,0.00002680,0.00005671,0.00010857,0.00019347,0.00032279]}
 };
 // string index i: 0 = 6th (low E) ... 5 = 1st (high E)
 const STR_NUM=['6','5','4','3','2','1'];
+const tuningNotes=k=>TUNINGS[k].map(m=>noteName(m).name).join(' ');
 
 // ---------- state ----------
 const st={running:false,a4:440,tuning:STD,scale:647.7,set:Object.keys(SETS)[0],mode:'auto',sel:0,cur:null,
   tuned:[false,false,false,false,false,false],readings:[],hist:[],dispC:null,dispStr:null,lastLive:0,greyed:false,inSince:null,inStr:null,
   intSel:0,intStep:'H',intData:{},waitQuiet:false,quietT:0};
 const $=id=>document.getElementById(id);
-function save(){ try{localStorage.setItem('setupscope2',JSON.stringify({a4:st.a4,tuning:st.tuning,scale:st.scale,set:st.set,custom:$('customScale').value}))}catch(e){} }
-function load(){ try{const o=JSON.parse(localStorage.getItem('setupscope2')||'{}'); if(o.a4)st.a4=o.a4; if(o.tuning in TUNINGS)st.tuning=o.tuning; if(o.scale!=null)st.scale=o.scale; if(o.set in SETS)st.set=o.set; if(o.custom)$('customScale').value=o.custom;}catch(e){} }
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function save(){ try{localStorage.setItem('setupscope3',JSON.stringify({a4:st.a4,tuning:st.tuning,scale:st.scale,set:st.set,custom:$('customScale').value}))}catch(e){} }
+function load(){ try{const o=JSON.parse(localStorage.getItem('setupscope3')||'{}'); if(o.a4)st.a4=o.a4; if(o.tuning in TUNINGS)st.tuning=o.tuning; if(o.scale!=null)st.scale=o.scale; if(o.set in SETS)st.set=o.set; if(o.custom)$('customScale').value=o.custom;}catch(e){} }
 const scaleMm=()=>st.scale>0?st.scale:(+$('customScale').value||648);
 const targets=()=>TUNINGS[st.tuning];
 const targetHz=i=>midiToHz(targets()[i],st.a4);
-const label=i=>{const n=noteName(targets()[i]);return n.name;};
+const label=i=>noteName(targets()[i]).name;
 
 // ---------- settings ----------
+function syncValues(){
+  $('tuningVal').textContent=st.tuning==='DADGAD'?'D A D G A D':`${st.tuning} · ${tuningNotes(st.tuning)}`;
+  $('scaleVal').textContent=[...$('scaleSel').options].find(o=>o.selected).textContent;
+  $('setVal').textContent=st.set;
+  $('customScaleRow').classList.toggle('hide',st.scale!==0);
+}
 function initSettings(){
   load();
-  $('tuningSel').innerHTML=Object.keys(TUNINGS).map(k=>`<option value="${k}">${k.replace(/  /,' · ')}</option>`).join('');
+  $('tuningSel').innerHTML=Object.keys(TUNINGS).map(k=>`<option value="${k}">${k} (${tuningNotes(k)})</option>`).join('');
   $('scaleSel').innerHTML=Object.entries(SCALES).map(([k,v])=>`<option value="${v}">${k}</option>`).join('');
-  $('setSel').innerHTML=Object.keys(SETS).map(k=>`<option>${k}</option>`).join('')+'<option value="custom">Other strings (enter unit weights)…</option>';
+  $('setSel').innerHTML=Object.keys(SETS).map(k=>`<option>${k}</option>`).join('')+'<option value="custom">Other (enter unit weights)…</option>';
   $('tuningSel').value=st.tuning; $('setSel').value=st.set; $('a4').value=st.a4;
   const sv=[...$('scaleSel').options].find(o=>+o.value===st.scale); $('scaleSel').value=sv?sv.value:'0';
-  $('customScaleRow').classList.toggle('hide',+$('scaleSel').value!==0);
   $('tuningSel').onchange=e=>{st.tuning=e.target.value;resetTuned();save();renderAll()};
-  $('scaleSel').onchange=e=>{st.scale=+e.target.value;$('customScaleRow').classList.toggle('hide',st.scale!==0);save();renderAll()};
+  $('scaleSel').onchange=e=>{st.scale=+e.target.value;save();renderAll()};
   $('customScale').oninput=()=>{save();renderAll()};
   $('setSel').onchange=e=>{ if(e.target.value==='custom') customSet(); else st.set=e.target.value; save(); renderAll(); };
   $('a4').onchange=e=>{st.a4=Math.min(466,Math.max(415,+e.target.value||440));e.target.value=st.a4;save();resetTuned();renderAll()};
-  $('gearBtn').onclick=()=>$('sheet').classList.add('on');
+  document.querySelectorAll('.gear').forEach(b=>b.onclick=()=>$('sheet').classList.add('on'));
   $('sheetClose').onclick=()=>$('sheet').classList.remove('on');
   $('sheet').onclick=e=>{ if(e.target.id==='sheet') $('sheet').classList.remove('on'); };
+  $('refSel').onchange=e=>{ $('refVal').textContent=e.target.options[e.target.selectedIndex].textContent; if(osc) osc.frequency.value=+e.target.value; };
 }
 function customSet(){
   const txt=prompt('Unit weights in lb/in from your string maker\'s chart, high E to low E, separated by commas:','0.00002215,0.00003744,0.00006402,0.00012671,0.00023964,0.00038216');
   const uw=(txt||'').split(',').map(Number);
-  if(uw.length!==6||uw.some(v=>!(v>0))){ if(txt) alert('Need six positive numbers.'); $('setSel').value=st.set; return; }
-  SETS['Custom set']={g:[null,null,null,null,null,null],uw}; st.set='Custom set';
-  $('setSel').innerHTML=Object.keys(SETS).map(k=>`<option>${k}</option>`).join('')+'<option value="custom">Other strings (enter unit weights)…</option>'; $('setSel').value=st.set;
+  if(uw.length!==6||uw.some(v=>!(v>0))){ if(txt) alert('Please enter six positive numbers.'); $('setSel').value=st.set; return; }
+  SETS['Custom']={g:[null,null,null,null,null,null],uw}; st.set='Custom';
+  $('setSel').innerHTML=Object.keys(SETS).map(k=>`<option>${k}</option>`).join('')+'<option value="custom">Other (enter unit weights)…</option>'; $('setSel').value=st.set;
 }
 
 // ---------- audio ----------
@@ -395,7 +464,7 @@ async function startMic(){
     st.running=true; $('startOverlay').classList.add('hide');
     try{ if(navigator.wakeLock) await navigator.wakeLock.request('screen'); }catch(e){}
     requestAnimationFrame(loop);
-  }catch(err){ $('startMsg').textContent='Could not start: '+err.message; }
+  }catch(err){ $('startMsg').textContent='Couldn\'t start: '+err.message; }
 }
 $('startBtn').onclick=startMic;
 let frame=0;
@@ -407,7 +476,7 @@ function loop(){
   let r=null;
   if(lvl>-66){ r=detectPitch(seg,sr,60,1400);
     if(r&&r.clarity>0.8){ const fr=fundamentalPitch(timeBuf.subarray(timeBuf.length-3*PITCH_N),sr,r.f,PITCH_N); if(fr) r.f=fr; } }
-  st.readings.push({f:(r&&r.clarity>0.8)?r.f:null,t:now,cl:r?r.clarity:0});
+  st.readings.push({f:(r&&r.clarity>0.8)?r.f:null,t:now});
   while(st.readings.length&&now-st.readings[0].t>1500) st.readings.shift();
   updateTune(now); updateIntonation(now);
   frame++; requestAnimationFrame(loop);
@@ -417,77 +486,82 @@ function currentF(now, win){ const v=st.readings.filter(x=>x.f&&now-x.t<(win||12
 function nearestString(f){ let best=0,bd=1e9; targets().forEach((m,i)=>{const d=Math.abs(cents(f,midiToHz(m,st.a4))); if(d<bd){bd=d;best=i}}); return {i:best,d:bd}; }
 
 // ---------- headstock illustration ----------
-// Front view, headstock up: low E (6th) on the left. Three pegs per side; the outer strings go to the pegs nearest the nut.
+// Front view, headstock up: low E (6th) on the left; outer strings go to the pegs nearest the nut.
 const NUT_X=i=>110+i*20, NUT_Y=272;
 const POST=[[100,236],[94,170],[88,104],[232,104],[226,170],[220,236]];
-const PEG_X=i=>i<3?34:286;
+const PEG_X=i=>i<3?36:284;
 function buildHead(){
-  let s='';
-  s+=`<path d="M106 280 L76 64 Q80 18 160 12 Q240 18 244 64 L214 280 Z" fill="#e8d8c3" stroke="#b89f80" stroke-width="2"/>`;
-  s+=`<text x="160" y="46" text-anchor="middle" font-size="12" font-weight="700" fill="#9c8263" letter-spacing="2">SETUPSCOPE</text>`;
-  s+=`<rect x="104" y="280" width="112" height="20" fill="#5b4632"/>`;           // neck
-  s+=`<rect x="102" y="268" width="116" height="9" rx="2" fill="#f4f1ea" stroke="#c9bfae"/>`; // nut
+  let s=`<defs><linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--wood1)"/><stop offset="1" style="stop-color:var(--wood2)"/></linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-opacity=".18"/></filter></defs>`;
+  s+=`<path d="M106 280 L76 64 Q80 16 160 10 Q240 16 244 64 L214 280 Z" fill="url(#wood)" style="stroke:var(--woodEdge)" stroke-width="1.5"/>`;
+  s+=`<rect x="104" y="280" width="112" height="20" style="fill:var(--neck)"/>`;
+  s+=`<rect x="102" y="268" width="116" height="8" rx="2" fill="#F7F4EE" stroke="#D4CBBB" stroke-width="1"/>`;
   for(let i=0;i<6;i++){
     const [px,py]=POST[i], x=PEG_X(i), side=i<3?-1:1;
-    s+=`<line x1="${px}" y1="${py}" x2="${x-side*16}" y2="${py}" stroke="#a7adb5" stroke-width="5" stroke-linecap="round"/>`;
-    s+=`<g class="peg" data-i="${i}" style="cursor:pointer"><rect id="peg${i}" x="${x-24}" y="${py-17}" width="48" height="34" rx="10" fill="#fff" stroke="#9aa5b3" stroke-width="2"/>`;
-    s+=`<text id="pegT${i}" x="${x}" y="${py+2}" text-anchor="middle" font-size="15" font-weight="800" fill="#18222e"></text>`;
-    s+=`<text id="pegS${i}" x="${x}" y="${py+13}" text-anchor="middle" font-size="9" fill="#5c6876">string ${STR_NUM[i]}</text>`;
-    s+=`<g id="tick${i}" visibility="hidden"><circle cx="${x+side*20}" cy="${py-16}" r="9" fill="#1f9d5c"/><path d="M${x+side*20-4} ${py-16} l3 3 l5 -6" stroke="#fff" stroke-width="2.2" fill="none"/></g></g>`;
-    s+=`<circle cx="${px}" cy="${py}" r="6" fill="#c9ced6" stroke="#8f97a2"/>`;
+    s+=`<line x1="${px}" y1="${py}" x2="${x-side*20}" y2="${py}" style="stroke:var(--metal)" stroke-width="5" stroke-linecap="round"/>`;
+    s+=`<g class="peg" data-i="${i}" style="cursor:pointer"><rect id="peg${i}" x="${x-26}" y="${py-18}" width="52" height="36" rx="18" filter="url(#sh)" style="fill:var(--card)"/>`;
+    s+=`<text id="pegT${i}" x="${x}" y="${py+1}" text-anchor="middle" font-size="16" font-weight="700" style="font-family:var(--round);fill:var(--label)"></text>`;
+    s+=`<text id="pegS${i}" x="${x}" y="${py+12}" text-anchor="middle" font-size="8.5" style="fill:var(--label2)">String ${STR_NUM[i]}</text>`;
+    s+=`<g id="tick${i}" visibility="hidden"><circle cx="${x+side*22}" cy="${py-16}" r="8.5" style="fill:var(--green)" stroke="#fff" stroke-width="1.5"/><path d="M${x+side*22-3.8} ${py-16} l2.8 2.8 l4.8 -5.6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></g></g>`;
+    s+=`<circle cx="${px}" cy="${py}" r="5.5" style="fill:var(--metal);stroke:var(--metalEdge)"/>`;
   }
   for(let i=0;i<6;i++){
-    const [px,py]=POST[i];
-    s+=`<line id="str${i}" x1="${NUT_X(i)}" y1="${NUT_Y}" x2="${px}" y2="${py}" stroke="#7d8794" stroke-width="${1.4+(5-i)*0.45}"/>`;
-    s+=`<line id="strN${i}" x1="${NUT_X(i)}" y1="${NUT_Y}" x2="${NUT_X(i)}" y2="300" stroke="#7d8794" stroke-width="${1.4+(5-i)*0.45}"/>`;
+    const [px,py]=POST[i], w=1.3+(5-i)*0.42;
+    s+=`<line id="str${i}" x1="${NUT_X(i)}" y1="${NUT_Y}" x2="${px}" y2="${py}" stroke-width="${w}" stroke-linecap="round"/>`;
+    s+=`<line id="strN${i}" x1="${NUT_X(i)}" y1="${NUT_Y}" x2="${NUT_X(i)}" y2="300" stroke-width="${w}"/>`;
     s+=`<line class="peg" data-i="${i}" x1="${NUT_X(i)}" y1="300" x2="${px}" y2="${py}" stroke="transparent" stroke-width="16" style="cursor:pointer"/>`;
   }
   $('head').innerHTML=s;
   $('head').querySelectorAll('.peg').forEach(el=>el.addEventListener('click',()=>pickString(+el.dataset.i)));
 }
+const stateVar=(c,live)=>!live?'var(--label3)':Math.abs(c)<=3?'var(--green)':c<0?'var(--blue)':'var(--orange)';
 let headKey='';
 function paintHead(active, cAct, live){
   const key=[active,live?Math.round(cAct/2):'x',st.tuned.join(),st.mode,st.sel,st.tuning].join('|'); if(key===headKey) return; headKey=key;
   for(let i=0;i<6;i++){
-    const on=i===active, col=on?(!live?'#9aa5b3':Math.abs(cAct)<=3?'#1f9d5c':cAct<0?'#2f6fb5':'#e07a1f'):(st.tuned[i]?'#1f9d5c':'#7d8794');
-    for(const id of ['str','strN']){ const el=$(id+i); el.setAttribute('stroke',col); el.setAttribute('stroke-width',(on?2.6:1.4)+(5-i)*0.45); }
-    const peg=$('peg'+i); peg.setAttribute('fill',on?col:(st.tuned[i]?'#eaf6ef':'#fff')); peg.setAttribute('stroke',on?col:(st.tuned[i]?'#1f9d5c':(st.mode==='manual'&&st.sel===i?'#1f5fbf':'#9aa5b3')));
-    peg.setAttribute('stroke-width',st.mode==='manual'&&st.sel===i?3:2);
-    $('pegT'+i).textContent=label(i); $('pegT'+i).setAttribute('fill',on?'#fff':'#18222e'); $('pegS'+i).setAttribute('fill',on?'#fff':'#5c6876');
-    $('tick'+i).setAttribute('visibility',st.tuned[i]?'visible':'hidden');
+    const on=i===active, col=on?stateVar(cAct,live):(st.tuned[i]?'var(--green)':'var(--stringc)');
+    for(const id of ['str','strN']){ const el=$(id+i); el.style.stroke=col; el.setAttribute('stroke-width',(on?2.6:1.3)+(5-i)*0.42); }
+    const peg=$('peg'+i), picked=st.mode==='manual'&&st.sel===i;
+    peg.style.fill=on?col:'var(--card)';
+    peg.style.stroke=picked&&!on?'var(--blue)':'none'; peg.style.strokeWidth=picked?2.5:0;
+    $('pegT'+i).textContent=label(i);
+    $('pegT'+i).style.fill=on?'#fff':'var(--label)'; $('pegS'+i).style.fill=on?'rgba(255,255,255,.85)':'var(--label2)';
+    $('tick'+i).setAttribute('visibility',st.tuned[i]&&!on?'visible':'hidden');
   }
 }
-function pickString(i){ st.mode='manual'; st.sel=i; st.dispC=null; setModeUI(); headKey=''; paintHead(i,0,false); }
+function pickString(i){ st.mode='manual'; st.sel=i; st.dispC=null; setModeUI(); headKey=''; paintHead(i,0,false); renderChips(); }
 function setModeUI(){
   $('autoBtn').classList.toggle('on',st.mode==='auto'); $('manBtn').classList.toggle('on',st.mode==='manual');
-  $('modeHint').textContent=st.mode==='auto'?'Auto: play any string and it is found for you. Or tap a string to pick it.':`Tuning string ${STR_NUM[st.sel]} (${label(st.sel)}). Tap another string, or switch back to Auto.`;
+  $('modeHint').textContent=st.mode==='auto'?'Play any string. Or tap one to choose it.':`Tuning string ${STR_NUM[st.sel]} (${label(st.sel)}). Tap another string to switch.`;
 }
-$('autoBtn').onclick=()=>{st.mode='auto';st.dispC=null;setModeUI();headKey=''};
+$('autoBtn').onclick=()=>{st.mode='auto';st.dispC=null;setModeUI();headKey='';renderChips()};
 $('manBtn').onclick=()=>pickString(st.cur!=null?st.cur:st.sel);
 
 // ---------- tuner ----------
-const GA=v=>{ const c=Math.max(-50,Math.min(50,v)); return Math.sign(c)*Math.sqrt(Math.abs(c)/50)*80; };   // zoomed dial
-const stateCol=(c,live)=>!live?'#aab4c0':Math.abs(c)<=3?'#1f9d5c':c<0?'#2f6fb5':'#e07a1f';
+const GA=v=>{ const c=Math.max(-50,Math.min(50,v)); return Math.sign(c)*Math.sqrt(Math.abs(c)/50)*78; };   // zoomed dial: small offsets get most of the arc
 function drawGauge(c, live){
-  const cx=160, cy=140, R=118, ang=v=>(-90+GA(v))*Math.PI/180, pt=(v,r)=>[cx+r*Math.cos(ang(v)),cy+r*Math.sin(ang(v))];
-  const arc=(a,b,col,w)=>{const [x1,y1]=pt(a,R),[x2,y2]=pt(b,R);return `<path d="M${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2}" stroke="${col}" stroke-width="${w}" fill="none"/>`};
-  let s=arc(-50,-3,'#cfdcee',14)+arc(3,50,'#f6dcc4',14)+arc(-3,3,'#1f9d5c',14);
-  for(const v of [-50,-20,-10,-5,-2,0,2,5,10,20,50]){const [x1,y1]=pt(v,R-12),[x2,y2]=pt(v,R-(Math.abs(v)%10===0?24:19));s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8793a1" stroke-width="2"/>`; if(Math.abs(v)!==2){const [tx,ty]=pt(v,R-36); s+=`<text x="${tx}" y="${ty+4}" font-size="11" text-anchor="middle" fill="#5c6876">${v>0?'+':''}${v}</text>`;}}
-  s+=`<text x="${cx-R}" y="${cy+2}" font-size="12" fill="#2f6fb5" font-weight="700">flat</text><text x="${cx+R}" y="${cy+2}" font-size="12" fill="#e07a1f" font-weight="700" text-anchor="end">sharp</text>`;
-  if(c!=null){ const [x,y]=pt(c,R-6); s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${stateCol(c,live)}" stroke-width="5" stroke-linecap="round"/>`; }
-  s+=`<circle cx="${cx}" cy="${cy}" r="8" fill="#16324f"/>`;
+  const cx=160, cy=150, R=128, ang=v=>(-90+GA(v))*Math.PI/180, pt=(v,r)=>[cx+r*Math.cos(ang(v)),cy+r*Math.sin(ang(v))];
+  const arc=(a,b,col,w,r)=>{r=r||R;const [x1,y1]=pt(a,r),[x2,y2]=pt(b,r);return `<path d="M${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}" style="stroke:${col}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`};
+  let s=arc(-50,50,'var(--fill2)',8)+arc(-3,3,'var(--green)',8);
+  for(const v of [-50,-20,-10,-5,-2,0,2,5,10,20,50]){ const major=v%10===0||Math.abs(v)===5; const [x1,y1]=pt(v,R-12),[x2,y2]=pt(v,R-(major?24:19)); s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:var(--label3)" stroke-width="${v===0?2.5:1.5}" stroke-linecap="round"/>`;
+    if(Math.abs(v)!==2&&Math.abs(v)!==5){ const [tx,ty]=pt(v,R-38); s+=`<text x="${tx}" y="${ty+4}" font-size="11" text-anchor="middle" style="fill:var(--label2);font-family:var(--round)">${v>0?'+':''}${v}</text>`; } }
+  s+=`<text x="${cx-R+6}" y="${cy+18}" font-size="12" font-weight="600" style="fill:var(--blue)">Flat</text><text x="${cx+R-6}" y="${cy+18}" font-size="12" font-weight="600" text-anchor="end" style="fill:var(--orange)">Sharp</text>`;
+  if(c!=null){ const col=stateVar(c,live), [x,y]=pt(c,R-4), [xa,ya]=pt(c,R);
+    s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" style="stroke:${col}" stroke-width="3.5" stroke-linecap="round"/><circle cx="${xa}" cy="${ya}" r="7" style="fill:${col}" stroke="#fff" stroke-width="2"/>`; }
+  s+=`<circle cx="${cx}" cy="${cy}" r="6" style="fill:var(--label)"/>`;
   $('gauge').innerHTML=s;
-  let f=`<rect x="10" y="8" width="300" height="16" rx="8" fill="#eef1f5"/><rect x="${160-45}" y="8" width="90" height="16" fill="#d7efe1"/>`;
-  for(let v=-10;v<=10;v++){ const x=160+v*15; f+=`<line x1="${x}" y1="${v%5===0?4:10}" x2="${x}" y2="${v%5===0?28:22}" stroke="${v===0?'#16324f':'#b6c0cc'}" stroke-width="${v===0?2:1}"/>`; }
-  f+=`<text x="10" y="42" font-size="11" fill="#5c6876">−10</text><text x="310" y="42" font-size="11" fill="#5c6876" text-anchor="end">+10</text><text x="160" y="42" font-size="11" fill="#5c6876" text-anchor="middle">fine view (cents)</text>`;
-  if(c!=null&&Math.abs(c)<=12){ const x=160+Math.max(-10.5,Math.min(10.5,c))*15; f+=`<circle cx="${x}" cy="16" r="9" fill="${stateCol(c,live)}"/>`; }
+  let f=`<rect x="20" y="12" width="280" height="6" rx="3" style="fill:var(--fill2)"/><rect x="${160-42}" y="12" width="84" height="6" style="fill:var(--green);opacity:.35"/>`;
+  for(let v=-10;v<=10;v+=5){ const x=160+v*14; f+=`<line x1="${x}" y1="${v===0?5:8}" x2="${x}" y2="${v===0?25:22}" style="stroke:var(--label3)" stroke-width="${v===0?2:1}"/>`; }
+  f+=`<text x="20" y="38" font-size="10.5" style="fill:var(--label2)">−10</text><text x="300" y="38" font-size="10.5" text-anchor="end" style="fill:var(--label2)">+10</text><text x="160" y="38" font-size="10.5" text-anchor="middle" style="fill:var(--label2)">fine</text>`;
+  if(c!=null&&Math.abs(c)<=12){ const x=160+Math.max(-10.6,Math.min(10.6,c))*14; f+=`<circle cx="${x}" cy="15" r="9" style="fill:${stateVar(c,live)}" stroke="#fff" stroke-width="2"/>`; }
   $('fine').innerHTML=f;
 }
-function resetTuned(){ st.tuned=[false,false,false,false,false,false]; st.inSince=null; headKey=''; renderProgress(); }
-function renderProgress(){
+function resetTuned(){ st.tuned=[false,false,false,false,false,false]; st.inSince=null; headKey=''; renderChips(); }
+function renderChips(){
   const n=st.tuned.filter(Boolean).length;
-  $('progTxt').textContent=n===6?'All 6 strings in tune ✓':`${n} of 6 strings in tune`;
-  $('dots').innerHTML=st.tuned.map(t=>`<i class="${t?'ok':''}"></i>`).join('');
+  $('progTxt').textContent=n===6?'All strings in tune':`${n} of 6 in tune`;
+  const cur=st.mode==='manual'?st.sel:st.cur;
+  $('chips').innerHTML=st.tuned.map((t,i)=>`<div class="pchip ${t?'ok':''} ${i===cur?'cur':''}">${label(i)}<small>${STR_NUM[i]}</small></div>`).join('');
 }
 function updateTune(now){
   if(!$('tab-tune').classList.contains('on')) return;
@@ -495,45 +569,45 @@ function updateTune(now){
   if(f){
     const ns=nearestString(f), i=st.mode==='auto'?ns.i:st.sel, target=targetHz(i), c=cents(f,target), nn=noteName(targets()[i]);
     if(st.dispC==null||i!==st.dispStr||Math.abs(c-st.dispC)>25) st.dispC=c; else st.dispC+=0.45*(c-st.dispC);
-    st.dispStr=i; st.cur=i; st.lastLive=now; st.greyed=false;
-    const d=st.dispC;
+    const changed=st.cur!==i; st.dispStr=i; st.cur=i; st.lastLive=now; st.greyed=false;
+    const d=st.dispC, cls=Math.abs(d)<=3?'ok':d<0?'flat':'sharp';
     $('noteName').innerHTML=`${nn.name}<sub>${nn.oct}</sub>`;
-    $('centsTxt').textContent=(d>0?'+':'')+d.toFixed(1)+'¢';
-    $('freqTxt').textContent=`String ${STR_NUM[i]} · ${f.toFixed(2)} Hz (target ${target.toFixed(2)})`;
+    const ce=$('centsTxt'); ce.className='cents '+cls; ce.textContent=Math.abs(d)<=3?'In tune':(d>0?'+':'−')+Math.abs(d).toFixed(1)+' cents';
+    $('freqTxt').textContent=`String ${STR_NUM[i]} · ${f.toFixed(2)} Hz · target ${target.toFixed(2)} Hz${st.mode==='auto'&&ns.d>150?' · far off: choose the string by hand':''}`;
     drawGauge(d,true);
-    const a=$('tuneAction');
-    if(Math.abs(d)<=3){ a.textContent='✓ In tune'; a.style.color='var(--ok)'; }
-    else if(d<-50){ a.textContent='↑ Tighten (well below)'; a.style.color='var(--flat)'; }
-    else if(d>50){ a.textContent='↓ Loosen (well above)'; a.style.color='var(--sharp)'; }
-    else if(d<0){ a.textContent='↑ Tighten'; a.style.color='var(--flat)'; }
-    else { a.textContent='↓ Loosen'; a.style.color='var(--sharp)'; }
-    $('tuneStatus').textContent=st.mode==='auto'&&ns.d>150?'Far from every string: tap the string you are tuning.':(st.mode==='auto'?'Auto-detected':'Picked by hand');
-    // a string counts as tuned after ~0.8 s within ±3 cents; it loses the tick if it drifts past ±6
-    if(Math.abs(d)<=3){ if(st.inStr!==i||st.inSince==null){st.inStr=i;st.inSince=now;} else if(now-st.inSince>800&&!st.tuned[i]){ st.tuned[i]=true; renderProgress(); } }
-    else { st.inSince=null; if(Math.abs(d)>6&&st.tuned[i]){ st.tuned[i]=false; renderProgress(); } }
+    const a=$('tuneAction'); a.style.color=`var(--${cls==='ok'?'green':cls==='flat'?'blue':'orange'})`;
+    a.textContent=cls==='ok'?'Perfect':d<-50?'Tighten a lot':d>50?'Loosen a lot':d<0?'Tighten':'Loosen';
+    // a string counts as tuned after ~0.8 s within ±3 cents; it loses the tick past ±6
+    if(Math.abs(d)<=3){ if(st.inStr!==i||st.inSince==null){st.inStr=i;st.inSince=now;} else if(now-st.inSince>800&&!st.tuned[i]){ st.tuned[i]=true; if(navigator.vibrate) navigator.vibrate(18); renderChips(); } }
+    else { st.inSince=null; if(Math.abs(d)>6&&st.tuned[i]){ st.tuned[i]=false; renderChips(); } }
+    if(changed) renderChips();
     paintHead(i,d,true);
     st.hist.push({t:now,c});
   } else {
     st.hist.push({t:now,c:null});
-    if(st.lastLive&&now-st.lastLive>600&&!st.greyed){ st.greyed=true; drawGauge(st.dispC,false); $('tuneStatus').textContent='Holding last reading · pluck again'; paintHead(st.cur,st.dispC||0,false); }
+    if(st.lastLive&&now-st.lastLive>600&&!st.greyed){ st.greyed=true; drawGauge(st.dispC,false); $('tuneAction').style.color='var(--label3)'; paintHead(st.cur,st.dispC||0,false); }
   }
   while(st.hist.length&&now-st.hist[0].t>10000) st.hist.shift();
   if(frame%2===0) drawHist(now);
 }
 function sizeCanvas(cv){ if(!cv.dataset.h) cv.dataset.h=cv.getAttribute('height'); const r=cv.getBoundingClientRect(), d=window.devicePixelRatio||1, h=+cv.dataset.h; if(cv.width!==Math.round(r.width*d)){cv.width=Math.round(r.width*d);cv.height=Math.round(h*d);cv.style.height=h+'px';} const g=cv.getContext('2d'); g.setTransform(d,0,0,d,0,0); return {g,w:r.width,h}; }
+let COL={};
+function readColors(){ COL={label2:cssv('--label2'),sep:cssv('--sep'),green:cssv('--green'),blue:cssv('--blue'),greenSoft:cssv('--greenSoft'),label:cssv('--label')}; }
 function drawHist(now){
   const {g,w,h}=sizeCanvas($('hist')); g.clearRect(0,0,w,h);
-  const L=30, y=v=>h/2+4-(Math.max(-20,Math.min(20,v))/20)*(h/2-10);
-  g.fillStyle='#e6f5ec'; g.fillRect(L,y(3),w-L,y(-3)-y(3));
-  g.strokeStyle='#dde3ea'; g.fillStyle='#5c6876'; g.font='11px system-ui'; g.textAlign='right'; g.textBaseline='middle';
-  for(const v of [-20,-10,0,10,20]){ g.beginPath(); g.moveTo(L,y(v)); g.lineTo(w,y(v)); g.stroke(); g.fillText((v>0?'+':'')+v,L-4,y(v)); }
-  g.strokeStyle='#16324f'; g.lineWidth=2; g.beginPath(); let on=false;
+  const L=26, y=v=>h/2+4-(Math.max(-20,Math.min(20,v))/20)*(h/2-10);
+  g.fillStyle=COL.greenSoft; g.fillRect(L,y(3),w-L,y(-3)-y(3));
+  g.strokeStyle=COL.sep; g.fillStyle=COL.label2; g.font='10px -apple-system,system-ui'; g.textAlign='right'; g.textBaseline='middle'; g.lineWidth=1;
+  for(const v of [-20,0,20]){ g.beginPath(); g.moveTo(L,y(v)); g.lineTo(w,y(v)); g.stroke(); g.fillText((v>0?'+':'')+v,L-5,y(v)); }
+  g.strokeStyle=COL.blue; g.lineWidth=2.2; g.lineJoin='round'; g.beginPath(); let on=false;
   for(const p of st.hist){ const x=L+(1-(now-p.t)/10000)*(w-L); if(p.c==null||Math.abs(p.c)>60){on=false;continue;} if(!on){g.moveTo(x,y(p.c));on=true}else g.lineTo(x,y(p.c)); }
-  g.stroke(); g.textAlign='right'; g.fillStyle='#5c6876'; g.fillText('now',w-2,h-7); g.textAlign='left'; g.fillText('cents',L+4,7);
+  g.stroke(); g.textAlign='left'; g.fillText('cents · last 10 s',L+4,7);
 }
 $('resetBtn').onclick=resetTuned;
 
 // ---------- tuning-change note (string tension) ----------
+const ICON_WARN='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5 1.5 21h21L12 2.5zm-1 6.5h2v6h-2V9zm0 8h2v2h-2v-2z"/></svg>';
+const ICON_OK='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.4 14.2-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7z"/></svg>';
 function renderTensionNote(){
   const cur=targets(), std=TUNINGS[STD], set=SETS[st.set], Lm=scaleMm()/1000;
   if(st.tuning===STD){ $('tensionNote').innerHTML=''; return; }
@@ -543,12 +617,12 @@ function renderTensionNote(){
   const g=set.g.slice().reverse(), sug=i=>g[i]?'.0'+Math.round(parseFloat(g[i])*Math.sqrt(1/r[i])*1000):null;
   let h='';
   if(slack.length){
-    const list=slack.length===6?`All six strings drop to about ${Math.round(slack[0].v*100)}% of their standard tension`:slack.map(o=>`string ${STR_NUM[o.i]} drops to ${Math.round(o.v*100)}%`).join(', ')+' of standard tension';
-    const fix=slack.every(o=>sug(o.i))?(slack.length===6?` For the same feel, use about a ${sug(5).slice(2)}–${sug(0).slice(2)} set.`:' For the same feel, use '+slack.map(o=>`${sug(o.i)} on string ${STR_NUM[o.i]}`).join(', ')+'.'):'';
-    h+=`<div class="note-tension"><b>Tuning change:</b> ${list.charAt(0).toUpperCase()+list.slice(1)}, so it may feel floppy or buzz.${fix}</div>`;
+    const list=slack.length===6?`All strings drop to about ${Math.round(slack[0].v*100)}% of their standard tension`:slack.map(o=>`String ${STR_NUM[o.i]} drops to ${Math.round(o.v*100)}%`).join(', ')+' of standard tension';
+    const fix=slack.every(o=>sug(o.i))?(slack.length===6?` A ${sug(5).slice(2)}–${sug(0).slice(2)} set keeps the usual feel.`:' '+slack.map(o=>`A ${sug(o.i)} on string ${STR_NUM[o.i]}`).join(', ')+' keeps the usual feel.'):'';
+    h+=`<div class="notice warn">${ICON_WARN}<div><b>${st.tuning}</b><br>${list}, so it may feel loose or buzz.${fix}</div></div>`;
   }
-  if(tight.length) h+=`<div class="note-tension"><b>Tuning change:</b> string${tight.length>1?'s':''} ${tight.map(o=>STR_NUM[o.i]).join(', ')} above 120% of standard tension: harder to play, higher risk of breaking.</div>`;
-  if(!h) h=`<div class="note-tension ok"><b>Tuning change:</b> every string stays within 80–120% of its standard tension with your ${st.set.split(' (')[0]} set.</div>`;
+  if(tight.length) h+=`<div class="notice warn">${ICON_WARN}<div><b>${st.tuning}</b><br>String${tight.length>1?'s':''} ${tight.map(o=>STR_NUM[o.i]).join(', ')} go above 120% of standard tension: harder to play and more likely to break.</div></div>`;
+  if(!h) h=`<div class="notice ok">${ICON_OK}<div><b>${st.tuning}</b><br>Every string stays within 80–120% of its standard tension with ${st.set} strings.</div></div>`;
   $('tensionNote').innerHTML=h;
 }
 
@@ -564,55 +638,57 @@ function updateIntonation(now){
   if(st.intStep==='F'&&st.waitQuiet){
     const recent=st.readings.filter(r=>now-r.t<300&&r.f).length;
     if(recent<3){ st.waitQuiet=false; st.quietT=now; }
-    else { $('intStatus').textContent='Got the harmonic. Mute the string, then press it at the 12th fret and pluck.'; $('capBar').style.width='0'; return; }
+    else { $('intStatus').textContent='Got it. Now mute the string.'; $('capBar').style.width='0'; return; }
   }
   const since=st.intStep==='F'?(st.quietT||0):0;
   const win=st.readings.filter(r=>now-r.t<900&&r.t>since), valid=win.filter(r=>r.f), exp=expectedHz(st.intSel);
   let prog=0, msg;
-  if(valid.length<win.length*0.8||valid.length<12){ msg=st.intStep==='H'?'Listening for the harmonic…':'Listening for the fretted note…'; prog=Math.min(0.3,valid.length/40); }
+  if(valid.length<win.length*0.8||valid.length<12){ msg='Listening…'; prog=Math.min(0.3,valid.length/40); }
   else{
     const fs=valid.map(r=>r.f).sort((a,b)=>a-b), med=fs[fs.length>>1], spread=cents(fs[fs.length-1],fs[0]), off=cents(med,exp);
-    if(Math.abs(off)>80){ msg=`Hearing ${noteName(hzToMidi(med,st.a4)).name} (${med.toFixed(0)} Hz), expected ${noteName(targets()[st.intSel]).name} for string ${STR_NUM[st.intSel]}. Tune the open string first.`; }
-    else if(spread>2.5){ msg='Hold steady…'; prog=0.6; }
+    if(Math.abs(off)>80){ msg=`That sounds like ${noteName(hzToMidi(med,st.a4)).name}, not ${label(st.intSel)}. Tune the open string first.`; }
+    else if(spread>2.5){ msg='Hold it steady…'; prog=0.65; }
     else{ const d=st.intData[st.intSel]||{}; d[st.intStep]=med; st.intData[st.intSel]=d;
+      if(navigator.vibrate) navigator.vibrate(15);
       if(st.intStep==='H'){ st.intStep='F'; st.waitQuiet=true; } else st.intStep='done';
       renderIntonation(); return; }
   }
   $('intStatus').textContent=msg; $('capBar').style.width=(prog*100)+'%';
 }
-function intVerdict(c){ const mm=saddleShift(scaleMm(),c); if(Math.abs(c)<=2) return {cls:'ok',txt:'Good: leave this saddle',mm}; return {cls:'adj',txt:(c>0?'Move the saddle back ':'Move the saddle forward ')+Math.abs(mm).toFixed(1)+' mm',mm}; }
+function intVerdict(c){ const mm=saddleShift(scaleMm(),c); if(Math.abs(c)<=2) return {cls:'ok',txt:'Leave it',mm}; return {cls:'adj',txt:(c>0?'Move back ':'Move forward ')+Math.abs(mm).toFixed(1)+' mm',mm}; }
 function renderIntonation(){
-  [...$('intStrings').children].forEach((b,i)=>{ const d=st.intData[i]; b.innerHTML=`${STR_NUM[i]}<small>${label(i)}</small>`; b.className=(i===st.intSel?'on ':'')+(d&&d.F?(Math.abs(cents(d.F,d.H))<=2?'ok':'adj'):''); });
+  [...$('intStrings').children].forEach((b,i)=>{ const d=st.intData[i]; b.innerHTML=`${label(i)}<small>${STR_NUM[i]}</small>`; b.className=(i===st.intSel?'on ':'')+(d&&d.F?(Math.abs(cents(d.F,d.H))<=2?'ok':'adj'):''); });
   const d=st.intData[st.intSel]||{};
-  $('liH').className=d.H?'done':(st.intStep==='H'?'now':''); $('liF').className=d.F?'done':(st.intStep==='F'?'now':''); $('liR').className=d.F?'done':'';
-  $('vH').textContent=d.H?d.H.toFixed(2)+' Hz':''; $('vF').textContent=d.F?d.F.toFixed(2)+' Hz':'';
+  $('liH').className='rowi '+(d.H?'done':(st.intStep==='H'?'now':'')); $('liF').className='rowi '+(d.F?'done':(st.intStep==='F'?'now':''));
+  $('liH').querySelector('.stepicon').textContent=d.H?'✓':'1'; $('liF').querySelector('.stepicon').textContent=d.F?'✓':'2';
+  $('vH').textContent=d.H?d.H.toFixed(1)+' Hz':''; $('vF').textContent=d.F?d.F.toFixed(1)+' Hz':'';
   $('capBar').style.width=d.F?'100%':'0';
   if(d.H&&d.F){ const c=cents(d.F,d.H), v=intVerdict(c);
-    $('intResult').innerHTML=`<div class="result ${v.cls}"><b class="big">${v.txt}</b>String ${STR_NUM[st.intSel]}: the fretted note is ${Math.abs(c).toFixed(1)} cents ${c>0?'too high':'too low'} compared with the harmonic${v.cls==='ok'?' (within ±2 cents)':c>0?', so the string is slightly too short':', so the string is slightly too long'}.</div>`;
-    $('intStatus').textContent='Done. Choose the next string.';
-  } else { $('intResult').innerHTML=''; if(!st.intData[st.intSel]) $('intStatus').textContent='Step 1: play the 12th-fret harmonic.'; }
+    $('intResult').innerHTML=`<div class="result ${v.cls}"><span class="big">${v.cls==='ok'?'✓ ':''}${v.txt}</span><p>${v.cls==='ok'?`String ${STR_NUM[st.intSel]} (${label(st.intSel)}) is within ±2 cents. No change needed.`:`String ${STR_NUM[st.intSel]} (${label(st.intSel)}): the fretted note is ${Math.abs(c).toFixed(1)} cents ${c>0?'too high, so the string is slightly too short':'too low, so the string is slightly too long'}. Move its saddle ${c>0?'away from the neck':'towards the neck'}.`}</p></div>`;
+    $('intStatus').textContent='Choose the next string.';
+  } else { $('intResult').innerHTML=''; if(!d.H) $('intStatus').textContent='Play the 12th-fret harmonic on string '+STR_NUM[st.intSel]+'.'; }
   drawBridge(); fillIntTable();
 }
 function fillIntTable(){
   let h=''; for(let i=0;i<6;i++){ const d=st.intData[i]; if(!d||!d.F){ h+=`<tr><td>${STR_NUM[i]} ${label(i)}</td><td class="num">${d&&d.H?d.H.toFixed(2):'–'}</td><td class="num">–</td><td class="num">–</td><td></td></tr>`; continue; }
-    const c=cents(d.F,d.H), v=intVerdict(c); h+=`<tr><td>${STR_NUM[i]} ${label(i)}</td><td class="num">${d.H.toFixed(2)}</td><td class="num">${d.F.toFixed(2)}</td><td class="num">${c>0?'+':''}${c.toFixed(1)}¢</td><td><span class="pill ${v.cls==='ok'?'ok':'warn'}">${v.cls==='ok'?'OK':(c>0?'back ':'fwd ')+Math.abs(v.mm).toFixed(1)+' mm'}</span></td></tr>`; }
+    const c=cents(d.F,d.H), v=intVerdict(c); h+=`<tr><td>${STR_NUM[i]} ${label(i)}</td><td class="num">${d.H.toFixed(2)}</td><td class="num">${d.F.toFixed(2)}</td><td class="num">${c>0?'+':''}${c.toFixed(1)}¢</td><td><span class="tag ${v.cls}">${v.cls==='ok'?'OK':(c>0?'Back ':'Forward ')+Math.abs(v.mm).toFixed(1)+' mm'}</span></td></tr>`; }
   $('intTable').innerHTML=h;
 }
 function drawBridge(){
-  let s=`<text x="170" y="13" text-anchor="middle" font-size="12" fill="#5c6876">↑ towards the neck (forward)</text><text x="170" y="226" text-anchor="middle" font-size="12" fill="#5c6876">↓ towards the tail (back)</text>`;
-  s+=`<rect x="20" y="86" width="300" height="56" rx="8" fill="#eef1f5" stroke="#c9d1dc"/>`;
+  let s=`<text x="170" y="13" text-anchor="middle" font-size="12" style="fill:var(--label2)">Towards the neck</text><text x="170" y="228" text-anchor="middle" font-size="12" style="fill:var(--label2)">Towards the tail</text>`;
+  s+=`<rect x="20" y="86" width="300" height="56" rx="12" style="fill:var(--fill)"/>`;
   for(let i=0;i<6;i++){ const x=45+i*50, d=st.intData[i];
-    s+=`<line x1="${x}" y1="24" x2="${x}" y2="208" stroke="#9aa5b3" stroke-width="${1+(5-i)*0.35}"/>`;
-    let col='#c9d1dc', extra='';
-    if(d&&d.F){ const c=cents(d.F,d.H), v=intVerdict(c); col=v.cls==='ok'?'#1f9d5c':'#e07a1f';
-      if(v.cls!=='ok'){ const dir=c>0?1:-1, len=Math.min(52,14+Math.abs(v.mm)*9), y0=dir>0?142:86, y1=y0+dir*len;
-        extra=`<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="#e07a1f" stroke-width="4"/><path d="M${x-7} ${y1-dir*8} L${x} ${y1} L${x+7} ${y1-dir*8}" fill="none" stroke="#e07a1f" stroke-width="4"/>`+
-              `<rect x="${x+5}" y="${(y0+y1)/2-9}" width="34" height="16" rx="3" fill="#fff" stroke="#e8c79d"/><text x="${x+22}" y="${(y0+y1)/2+3}" text-anchor="middle" font-size="11" font-weight="700" fill="#8a5a00">${Math.abs(v.mm).toFixed(1)}</text>`; }
-      else extra=`<text x="${x}" y="80" text-anchor="middle" font-size="11" font-weight="700" fill="#156b3f">OK</text>`; }
-    s+=`<rect x="${x-14}" y="105" width="28" height="18" rx="4" fill="${col}" stroke="${i===st.intSel?'#1f5fbf':'none'}" stroke-width="2.5"/>`;
-    s+=`<text x="${x}" y="118" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${STR_NUM[i]}</text>`+extra;
+    s+=`<line x1="${x}" y1="24" x2="${x}" y2="210" style="stroke:var(--stringc)" stroke-width="${1+(5-i)*0.35}"/>`;
+    let col='var(--fill2)', tcol='var(--label2)', extra='';
+    if(d&&d.F){ const c=cents(d.F,d.H), v=intVerdict(c); col=v.cls==='ok'?'var(--green)':'var(--orange)'; tcol='#fff';
+      if(v.cls!=='ok'){ const dir=c>0?1:-1, len=Math.min(52,16+Math.abs(v.mm)*9), y0=dir>0?142:86, y1=y0+dir*len;
+        extra=`<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" style="stroke:var(--orange)" stroke-width="3.5" stroke-linecap="round"/><path d="M${x-6} ${y1-dir*7} L${x} ${y1} L${x+6} ${y1-dir*7}" fill="none" style="stroke:var(--orange)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`+
+              `<rect x="${x+6}" y="${(y0+y1)/2-10}" width="38" height="20" rx="10" style="fill:var(--card)" filter="url(#bsh)"/><text x="${x+25}" y="${(y0+y1)/2+4}" text-anchor="middle" font-size="11" font-weight="700" style="fill:var(--orange);font-family:var(--round)">${Math.abs(v.mm).toFixed(1)}</text>`; }
+      else extra=`<text x="${x}" y="78" text-anchor="middle" font-size="11" font-weight="700" style="fill:var(--green)">OK</text>`; }
+    s+=`<rect x="${x-15}" y="103" width="30" height="22" rx="7" style="fill:${col}${i===st.intSel?';stroke:var(--blue);stroke-width:2.5':''}"/>`;
+    s+=`<text x="${x}" y="118" text-anchor="middle" font-size="12" font-weight="700" style="fill:${tcol};font-family:var(--round)">${label(i)}</text>`+extra;
   }
-  s+=`<text x="24" y="156" font-size="10" fill="#5c6876">numbers = millimetres</text>`;
+  s=`<defs><filter id="bsh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity=".2"/></filter></defs>`+s+`<text x="24" y="158" font-size="10" style="fill:var(--label2)">mm</text>`;
   $('bridge').innerHTML=s;
 }
 
@@ -625,24 +701,25 @@ $('selfTest').onclick=()=>{
     const r=detectPitch(x.subarray(x.length-N),sr,60,1400); if(r){ const fr=fundamentalPitch(x,sr,r.f,N); if(fr) r.f=fr; }
     const truth=f*Math.sqrt(1+B), err=r?cents(r.f,truth):NaN; worst=Math.max(worst,Math.abs(err));
     if(det===0) rows+=`<tr><td class="num">${truth.toFixed(2)}</td><td class="num">${r?r.f.toFixed(2):'–'}</td><td class="num">${isNaN(err)?'–':(err>0?'+':'')+err.toFixed(2)+'¢'}</td></tr>`; } }
-  $('selfOut').innerHTML=`<div class="result ${worst<1?'ok':'adj'}"><b class="big">Worst error: ${worst.toFixed(2)} cents</b>over ${cases.length*3} test tones from 82 Hz to 659 Hz. ${worst<1?'Far inside the ±3 cent "in tune" band.':'Larger than expected; check the microphone.'} Saddle formula gives ${saddleShift(648,1).toFixed(3)} mm per cent on a 648 mm scale (guitar techs' rule of thumb ≈ 0.37).</div>
-  <details><summary>Test tones</summary><table style="margin-top:6px"><thead><tr><th class="num">True Hz</th><th class="num">Detected</th><th class="num">Error</th></tr></thead><tbody>${rows}</tbody></table></details>`;
+  $('selfOut').innerHTML=`<div class="result ${worst<1?'ok':'adj'}" style="margin:14px 0 4px"><span class="big">${worst.toFixed(2)} cents</span><p>Worst error over ${cases.length*3} test tones from 82 to 659 Hz. ${worst<1?'Far inside the ±3-cent in-tune range.':'Larger than expected.'}</p></div>
+  <details><summary>Show test tones</summary><table><thead><tr><th class="num">True Hz</th><th class="num">Measured</th><th class="num">Error</th></tr></thead><tbody>${rows}</tbody></table></details>`;
 };
 $('refBtn').onclick=()=>{
   if(!ctx) ctx=new (window.AudioContext||window.webkitAudioContext)();
-  if(osc){ osc.stop(); osc=null; $('refBtn').textContent='Play tone'; return; }
-  osc=ctx.createOscillator(); const g=ctx.createGain(); g.gain.value=0.25; osc.frequency.value=+$('refSel').value; osc.connect(g).connect(ctx.destination); osc.start(); $('refBtn').textContent='Stop tone';
+  if(osc){ osc.stop(); osc=null; $('refBtn').textContent='Play Tone'; return; }
+  osc=ctx.createOscillator(); const g=ctx.createGain(); g.gain.value=0.25; osc.frequency.value=+$('refSel').value; osc.connect(g).connect(ctx.destination); osc.start(); $('refBtn').textContent='Stop Tone';
 };
 
 // ---------- tabs & init ----------
-document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('nav.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+document.querySelectorAll('nav.tabbar button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav.tabbar button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.id==='tab-'+b.dataset.tab));
   if(b.dataset.tab==='int') renderIntonation();
   window.scrollTo(0,0);
 });
-function renderAll(){ headKey=''; paintHead(st.cur,0,false); setModeUI(); renderTensionNote(); renderIntonation(); renderProgress(); }
-initSettings(); buildHead(); initIntonation(); drawGauge(null); renderAll();
+function renderAll(){ syncValues(); headKey=''; paintHead(st.cur,0,false); setModeUI(); renderTensionNote(); renderIntonation(); renderChips(); }
+if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColors();headKey='';});
+readColors(); initSettings(); buildHead(); initIntonation(); drawGauge(null); renderAll();
 </script>
 </body>
 </html>
